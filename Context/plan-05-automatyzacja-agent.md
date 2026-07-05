@@ -81,6 +81,12 @@ Poza stałymi listami agent może dodać 1–2 źródła "z ulicy":
 4. Użyte źródło dynamiczne trafia do `sources` pod swoją domeną (np. `"pogoda.lokalneradio.pl"`).
 5. Zakaz: strony wymagające logowania, PDF-y, fora/social media, strony starsze niż z bieżącej doby.
 
+### 4.4 Źródła odrzucone (nie próbować ponownie)
+
+| Źródło | Powód odrzucenia (sprawdzone 2026-07) |
+| --- | --- |
+| Apple Weather / WeatherKit | Jedyna legalna droga to WeatherKit REST API, które wymaga płatnego konta Apple Developer (99 USD/rok) — konflikt z zasadą "bez płatnych API". Web `weather.apple.com` zwraca 403 zarówno bezpośrednio, jak i przez `r.jina.ai` (zabezpieczenia Apple). |
+
 Uwagi:
 - **Open-Meteo multi-model** to najważniejszy ruch: parametr `models=` daje trzy niezależne modele numeryczne w jednym tanim JSON-ie — realizuje wymóg "wielu modeli matematycznych" bez dodatkowych tokenów.
 - **YR.no i IMGW** mają czyste, darmowe API — tanie tokenowo, warto mieć zawsze w grze.
