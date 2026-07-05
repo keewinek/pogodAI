@@ -16,6 +16,7 @@ Osobisty, hiperlokalny system prognozowania pogody. Zamiast jednego, często nie
 | Routing | `/` = panel wyboru lokalizacji (lub redirect wg `localStorage`); `/[lokalizacja]` = strona prognozy |
 | Edycja lokalizacji | Bez autoryzacji (strona prywatna); autoryzacja kluczem tylko dla POST prognozy z automatyzacji |
 | AI | Agent w **Cursor Cloud Automations** (cron co godzinę), bez płatnych API zewnętrznych |
+| Źródła | 3 warstwy: rdzeń (Open-Meteo multi-model, YR.no, Google, IMGW) + pula rotacyjna ~12 serwisów (TVN, Interia, Onet, WP, AccuWeather…) + 0–2 źródła dobierane dynamicznie przez agenta z wyników wyszukiwania; łącznie 6–10 źródeł na lokalizację (szczegóły: `plan-05` §4) |
 | Scraping | Przez `https://r.jina.ai/<URL>` — czysty Markdown, omija Cloudflare/RODO, oszczędza tokeny |
 | Hosting | **Deno Deploy** (frontend + API + KV w jednym projekcie) |
 
