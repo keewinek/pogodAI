@@ -163,8 +163,7 @@ export default function LocationEditor(
       setSelected(null);
       setMessage({
         kind: "ok",
-        text:
-          "✅ Dodano. Prognoza pojawi się po następnym cyklu automatyzacji (do 1h).",
+        text: "Dodano. Prognoza pojawi się w ciągu godziny.",
       });
     } catch {
       setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
@@ -196,55 +195,53 @@ export default function LocationEditor(
   };
 
   return (
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-8">
       {locations.length === 0
         ? (
-          <p class="text-white/70 text-center">
+          <p class="text-[15px] muted text-center">
             Brak lokalizacji — dodaj pierwszą poniżej.
           </p>
         )
         : (
-          <ul class="rounded-3xl bg-white/10 backdrop-blur border border-white/15 overflow-hidden divide-y divide-white/10">
+          <div class="grouped grouped-divider">
             {locations.map((l) => (
-              <li key={l.id} class="flex items-center gap-3 px-4 py-3">
-                <span class="flex-1 font-medium">📍 {l.name}</span>
-                <span class="text-xs text-white/50">
-                  {l.lat.toFixed(2)}, {l.lon.toFixed(2)}
-                </span>
+              <div key={l.id} class="grouped-row">
+                <div class="flex-1 min-w-0">
+                  <p class="text-[17px] font-medium truncate">{l.name}</p>
+                  <p class="text-[13px] muted tabular-nums mt-0.5">
+                    {l.lat.toFixed(2)}°, {l.lon.toFixed(2)}°
+                  </p>
+                </div>
                 <button
                   type="button"
                   aria-label={`Usuń lokalizację ${l.name}`}
-                  onClick={() =>
-                    remove(l)}
-                  class="rounded-xl px-3 py-2 min-h-11 hover:bg-red-500/20 transition"
+                  onClick={() => remove(l)}
+                  class="btn-ghost text-[15px] text-red-400/90 hover:text-red-300 shrink-0"
                 >
-                  🗑️
+                  Usuń
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
 
-      <form
-        onSubmit={add}
-        class="rounded-3xl bg-white/10 backdrop-blur border border-white/15 p-5 flex flex-col gap-3"
-      >
-        <h2 class="font-semibold">Dodaj lokalizację</h2>
+      <form onSubmit={add} class="grouped p-5 flex flex-col gap-4">
+        <h2 class="text-[13px] font-semibold muted uppercase tracking-wide">
+          Dodaj
+        </h2>
 
         <button
           type="button"
           onClick={useGps}
           disabled={gpsBusy || busy}
-          class="rounded-2xl bg-white/15 border border-white/20 px-4 py-3 text-sm font-medium hover:bg-white/25 transition disabled:opacity-50 min-h-11"
+          class="btn-pill w-full disabled:opacity-40"
         >
-          {gpsBusy
-            ? "Szukam Twojej lokalizacji…"
-            : "📍 Użyj mojej lokalizacji (GPS)"}
+          {gpsBusy ? "Szukam lokalizacji…" : "Użyj mojej lokalizacji"}
         </button>
 
         <div class="relative" ref={searchRef}>
-          <label class="flex flex-col gap-1 text-sm">
-            <span class="text-white/70">Szukaj miejscowości</span>
+          <label class="flex flex-col gap-2">
+            <span class="text-[13px] font-semibold muted">Miejscowość</span>
             <input
               type="search"
               value={query}
@@ -258,17 +255,17 @@ export default function LocationEditor(
                 if (selected && v !== selected.name) setSelected(null);
               }}
               placeholder="np. Białołęka, Zakopane…"
-              class="rounded-xl bg-white/10 border border-white/20 px-3 py-2.5 placeholder-white/40 focus:outline-none focus:border-white/50 min-h-11"
+              class="field"
             />
           </label>
 
-          {searching && <p class="mt-1 text-xs text-white/50">Szukam…</p>}
+          {searching && <p class="mt-1 text-[13px] muted">Szukam…</p>}
 
           {searchOpen && suggestions.length > 0 && (
             <ul
               id="geocode-suggestions"
               role="listbox"
-              class="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-2xl bg-slate-900/95 backdrop-blur border border-white/20 shadow-xl py-1"
+              class="absolute z-10 mt-2 w-full max-h-56 overflow-y-auto grouped py-1 shadow-2xl shadow-black/40"
             >
               {suggestions.map((s) => (
                 <li key={`${s.lat}-${s.lon}-${s.name}`}>
@@ -276,11 +273,11 @@ export default function LocationEditor(
                     type="button"
                     role="option"
                     onClick={() => pick(s)}
-                    class="w-full px-4 py-3 text-left text-sm hover:bg-white/10 transition min-h-11"
+                    class="grouped-row w-full text-left hover:bg-white/[0.04] transition"
                   >
-                    <span class="font-medium">📍 {s.name}</span>
-                    <span class="block text-xs text-white/50 mt-0.5">
-                      {s.lat.toFixed(4)}, {s.lon.toFixed(4)}
+                    <span class="text-[17px] font-medium">{s.name}</span>
+                    <span class="block text-[13px] muted tabular-nums mt-0.5">
+                      {s.lat.toFixed(4)}°, {s.lon.toFixed(4)}°
                     </span>
                   </button>
                 </li>
@@ -290,10 +287,10 @@ export default function LocationEditor(
         </div>
 
         {selected && (
-          <div class="rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm">
-            <p class="font-medium">Wybrano: {selected.name}</p>
-            <p class="text-xs text-white/50 mt-1">
-              {selected.lat.toFixed(4)}, {selected.lon.toFixed(4)}
+          <div class="rounded-[14px] bg-white/6 px-4 py-3">
+            <p class="text-[15px] font-medium">{selected.name}</p>
+            <p class="text-[13px] muted tabular-nums mt-0.5">
+              {selected.lat.toFixed(4)}°, {selected.lon.toFixed(4)}°
             </p>
           </div>
         )}
@@ -301,15 +298,15 @@ export default function LocationEditor(
         <button
           type="submit"
           disabled={busy || !selected}
-          class="rounded-2xl bg-white/20 px-5 py-3 font-medium hover:bg-white/30 transition disabled:opacity-50 min-h-11"
+          class="btn-primary w-full disabled:opacity-40"
         >
-          {busy ? "Dodawanie…" : "+ Dodaj"}
+          {busy ? "Dodawanie…" : "Dodaj lokalizację"}
         </button>
 
         {message && (
           <p
-            class={`text-sm ${
-              message.kind === "ok" ? "text-emerald-300" : "text-red-300"
+            class={`text-[15px] ${
+              message.kind === "ok" ? "text-emerald-400/90" : "text-red-400/90"
             }`}
           >
             {message.text}

@@ -4,24 +4,26 @@ export function FreshnessFooter(
   { generatedAt, sources }: { generatedAt: string; sources: string[] },
 ) {
   const age = ageMinutes(generatedAt);
-  let freshnessClass = "text-white/60";
+  let freshnessClass = "muted";
   let warning: string | null = null;
   if (age > 180) {
-    freshnessClass = "text-red-300";
+    freshnessClass = "text-red-400/90";
     warning = "automatyzacja mogła się wysypać";
   } else if (age > 90) {
-    freshnessClass = "text-amber-300";
+    freshnessClass = "text-amber-300/90";
     warning = "dane mogą być nieaktualne";
   }
 
   return (
-    <footer class="pt-2 pb-8 text-center text-xs">
-      <p class={freshnessClass}>
-        Zaktualizowano {relativeTime(generatedAt)}
-        {warning && <span>— {warning}</span>}
-      </p>
-      <p class="mt-1 text-white/50">
-        Synteza z: {sources.join(" · ")}
+    <footer class="pt-4 pb-12 text-center">
+      <div class="footer-badge inline-block rounded-full px-4 py-2">
+        <p class={`text-[12px] ${freshnessClass}`}>
+          Zaktualizowano {relativeTime(generatedAt)}
+          {warning && <span class="block mt-0.5 opacity-90">{warning}</span>}
+        </p>
+      </div>
+      <p class="mt-3 text-[11px] muted leading-relaxed max-w-[16rem] mx-auto">
+        Synteza z {sources.length} źródeł
       </p>
     </footer>
   );

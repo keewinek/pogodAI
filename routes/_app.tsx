@@ -14,8 +14,16 @@ export default define.page(function App({ Component, state }) {
         <link rel="manifest" href="/manifest.json" />
         <title>{state.title ?? "PogodAI"}</title>
       </head>
-      <body class={`min-h-dvh text-white antialiased ${theme.gradient}`}>
-        <Component />
+      <body
+        class={`text-white antialiased ${theme.gradient}`}
+        data-theme={theme.name}
+      >
+        <div class="app-shell">
+          <div class="app-ambient" aria-hidden="true" />
+          <div class="app-content">
+            <Component />
+          </div>
+        </div>
       </body>
     </html>
   );

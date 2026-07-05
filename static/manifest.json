@@ -4,8 +4,8 @@
   "description": "Jedna, prawdziwa prognoza — synteza wielu źródeł przez AI.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0a0e12",
+  "theme_color": "#0a0e12",
   "lang": "pl",
   "icons": [
     {

@@ -14,16 +14,19 @@ export const handler = define.handlers({
 
 export default define.page<typeof handler>(function Lokalizacje({ data }) {
   return (
-    <main class="max-w-md mx-auto px-4 py-8 flex flex-col gap-6">
-      <header class="flex items-center gap-3">
+    <main class="max-w-md mx-auto px-5 pt-4 pb-12 flex flex-col gap-8">
+      <header class="flex items-center gap-3 pt-2">
         <a
           href="/"
-          aria-label="Wróć do wyboru lokalizacji"
-          class="rounded-full bg-white/15 px-3.5 py-2 hover:bg-white/25 transition min-h-11 flex items-center"
+          aria-label="Wróć"
+          class="btn-ghost flex items-center justify-center w-11 h-11 p-0 rounded-full bg-white/8"
         >
-          ←
+          <span
+            class="chevron rotate-[135deg] -mr-0.5"
+            aria-hidden="true"
+          />
         </a>
-        <h1 class="text-2xl font-bold">Lokalizacje</h1>
+        <h1 class="text-[28px] font-semibold tracking-tight">Lokalizacje</h1>
       </header>
 
       <LocationEditor initialLocations={data.locations} />

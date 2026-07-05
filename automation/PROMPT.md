@@ -23,12 +23,10 @@ Dla każdej lokalizacji:
 2. **Zbierz dane redakcyjne i agregatory** — przez `https://r.jina.ai/<url>` lub
    bezpośrednie API tam, gdzie to tanie: TVN Meteo, Interia, Onet, WP, meteo.pl,
    AccuWeather, Weather.com, Meteoblue, Foreca, MSN Pogoda, Google
-   (`pogoda
-   {nazwa}`), WetterOnline, IMGW.
+   (`pogoda  {nazwa}`), WetterOnline, IMGW.
 3. **Poszukaj dodatkowych źródeł** — w wynikach wyszukiwania i lokalnych
    portalach; każde sensowne źródło z konkretnymi liczbami dla właściwej
-   miejscowości liczy się do syntezy. Nie używaj forów, social mediów, paywalli
-   ani Apple Weather (403 / płatny WeatherKit).
+   miejscowości liczy się do syntezy. Nie używaj forów, social mediów, paywalli.
 4. **Cel:** minimum **15**, docelowo **~30** faktycznie użytych źródeł na
    lokalizację. W `sources` wpisuj tylko te, z których realnie wziąłeś dane
    (modele jako `open-meteo-icon`, `open-meteo-gfs`, `yr.no`, domeny serwisów
@@ -67,11 +65,11 @@ Max **3 zdania**, po polsku, łącznie do 300 znaków:
 2. Dla **każdej** lokalizacji wykonaj deep research (metoda powyżej).
 3. Zbuduj JSON zgodny ze schematem i wyślij:
 
-   ```
-   curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
-     -H "Content-Type: application/json" \
-     -d '<json>'
-   ```
+```
+curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
+  -H "Content-Type: application/json" \
+  -d '<json>'
+```
 
 4. Sprawdź `{"ok":true}`. Przy **400** — przeczytaj `error`, popraw JSON, ponów
    raz. Gdy **wszystkie** źródła padły — **nie** wysyłaj POST (zostaje stara

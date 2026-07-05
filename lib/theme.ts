@@ -1,46 +1,46 @@
 export interface Theme {
   name: string;
-  gradient: string; // klasy Tailwind na tło
-  accent: string; // klasa koloru akcentu
-  themeColor: string; // meta theme-color
+  gradient: string;
+  accent: string;
+  themeColor: string;
 }
 
 const THEMES: Record<string, Theme> = {
   sunny: {
     name: "sunny",
-    gradient: "bg-gradient-to-b from-sky-400 to-blue-600",
-    accent: "text-amber-300",
-    themeColor: "#38bdf8",
+    gradient: "bg-gradient-to-b from-[#4a8fd4] via-[#2e5f8f] to-[#152238]",
+    accent: "text-amber-200/90",
+    themeColor: "#2e5f8f",
   },
   cloudy: {
     name: "cloudy",
-    gradient: "bg-gradient-to-b from-slate-400 to-slate-700",
-    accent: "text-sky-300",
-    themeColor: "#94a3b8",
+    gradient: "bg-gradient-to-b from-[#6b7d8f] via-[#455563] to-[#283038]",
+    accent: "text-white/85",
+    themeColor: "#455563",
   },
   rainy: {
     name: "rainy",
-    gradient: "bg-gradient-to-b from-slate-600 to-indigo-900",
-    accent: "text-cyan-300",
-    themeColor: "#475569",
+    gradient: "bg-gradient-to-b from-[#4a5d72] via-[#2f3d4d] to-[#161c24]",
+    accent: "text-sky-200/80",
+    themeColor: "#2f3d4d",
   },
   snowy: {
     name: "snowy",
-    gradient: "bg-gradient-to-b from-slate-500 to-blue-900",
-    accent: "text-white",
-    themeColor: "#64748b",
+    gradient: "bg-gradient-to-b from-[#7a8fa3] via-[#556275] to-[#323a48]",
+    accent: "text-white/90",
+    themeColor: "#556275",
   },
   storm: {
     name: "storm",
-    gradient: "bg-gradient-to-b from-slate-800 to-purple-950",
-    accent: "text-yellow-300",
-    themeColor: "#1e293b",
+    gradient: "bg-gradient-to-b from-[#3a4452] via-[#222830] to-[#0e1014]",
+    accent: "text-violet-200/75",
+    themeColor: "#222830",
   },
   night: {
     name: "night",
-    gradient: "bg-gradient-to-b from-slate-900 to-indigo-950",
-    accent: "text-indigo-300",
-    themeColor: "#0f172a",
+    gradient: "bg-gradient-to-b from-[#141820] via-[#0a0d12] to-[#030405]",
+    accent: "text-indigo-200/70",
+    themeColor: "#0a0d12",
   },
 };
 

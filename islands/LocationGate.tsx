@@ -7,7 +7,6 @@ const STORAGE_KEY = "pogodai_location";
  * Panel wyboru lokalizacji na "/".
  * Przy montowaniu: jeśli w localStorage jest zapisana lokalizacja z listy,
  * przekierowuje natychmiast (location.replace — bez wpisu w historii).
- * Nieaktualny zapis (usunięta lokalizacja) jest czyszczony.
  */
 export default function LocationGate({ locations }: { locations: Location[] }) {
   useEffect(() => {
@@ -27,28 +26,26 @@ export default function LocationGate({ locations }: { locations: Location[] }) {
 
   if (locations.length === 0) {
     return (
-      <div class="text-center">
-        <p class="text-white/80">Nie ma jeszcze żadnej lokalizacji.</p>
-        <a
-          href="/lokalizacje"
-          class="mt-4 inline-block rounded-2xl bg-white/20 px-6 py-3 font-medium hover:bg-white/30 transition"
-        >
-          + Dodaj pierwszą lokalizację
+      <div class="text-center grouped px-6 py-10">
+        <p class="text-[17px] muted-strong">Brak lokalizacji</p>
+        <a href="/lokalizacje" class="btn-primary inline-flex mt-6">
+          Dodaj pierwszą
         </a>
       </div>
     );
   }
 
   return (
-    <div class="flex flex-col gap-3">
+    <div class="grouped grouped-divider">
       {locations.map((l) => (
         <button
           key={l.id}
           type="button"
           onClick={() => choose(l.id)}
-          class="w-full rounded-3xl bg-white/15 backdrop-blur border border-white/20 px-5 py-4 text-left text-lg font-medium shadow hover:bg-white/25 transition min-h-11"
+          class="grouped-row w-full text-left text-[17px] font-medium transition hover:bg-white/[0.04]"
         >
-          📍 {l.name}
+          {l.name}
+          <span class="chevron ml-auto" aria-hidden="true" />
         </button>
       ))}
     </div>

@@ -6,7 +6,7 @@ import LocationGate from "../islands/LocationGate.tsx";
 export const handler = define.handlers({
   async GET(ctx) {
     ctx.state.theme = DEFAULT_THEME;
-    ctx.state.title = "PogodAI — wybierz lokalizację";
+    ctx.state.title = "PogodAI";
     const locations = await listLocations();
     return { data: { locations } };
   },
@@ -14,20 +14,19 @@ export const handler = define.handlers({
 
 export default define.page<typeof handler>(function Home({ data }) {
   return (
-    <main class="max-w-md mx-auto px-4 py-12 flex flex-col gap-8">
+    <main class="max-w-md mx-auto px-5 pt-20 pb-12 flex flex-col gap-10 min-h-dvh justify-center">
       <header class="text-center">
-        <h1 class="text-4xl font-bold">PogodAI 🌦️</h1>
-        <p class="mt-2 text-white/70">Wybierz lokalizację</p>
+        <div class="wordmark mx-auto" aria-hidden="true">⛅</div>
+        <h1 class="text-[34px] font-semibold tracking-tight">PogodAI</h1>
+        <p class="mt-2 text-[17px] muted">Jedna prognoza z wielu źródeł</p>
       </header>
 
       <LocationGate locations={data.locations} />
 
-      <p class="text-center">
-        <a
-          href="/lokalizacje"
-          class="text-sm text-white/60 underline underline-offset-4 hover:text-white/90 transition"
-        >
-          Edytuj lokalizacje…
+      <p class="text-center pt-2">
+        <a href="/lokalizacje" class="btn-ghost inline-flex items-center gap-2">
+          Edytuj lokalizacje
+          <span class="chevron" aria-hidden="true" />
         </a>
       </p>
     </main>

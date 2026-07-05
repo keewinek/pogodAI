@@ -11,7 +11,6 @@ export default function LocationPicker(
   const ref = useRef<HTMLDivElement>(null);
   const current = locations.find((l) => l.id === currentId);
 
-  // Zapamiętaj bieżącą lokalizację (np. wejście z bezpośredniego linku).
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, currentId);
   }, [currentId]);
@@ -40,36 +39,50 @@ export default function LocationPicker(
   };
 
   return (
-    <div class="relative flex justify-center" ref={ref}>
+    <div class="relative flex justify-center pt-2" ref={ref}>
       <button
         type="button"
         aria-label="Zmień lokalizację"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        class="rounded-full bg-white/15 backdrop-blur border border-white/20 px-4 py-2.5 text-sm font-medium hover:bg-white/25 transition min-h-11"
+        class="btn-pill"
       >
-        📍 {current?.name ?? currentId} <span aria-hidden="true">▾</span>
+        <span>{current?.name ?? currentId}</span>
+        <span
+          class={`chevron chevron-down transition-transform ${
+            open ? "rotate-[225deg]" : ""
+          }`}
+          aria-hidden="true"
+        />
       </button>
 
       {open && (
-        <div class="absolute top-full mt-2 z-10 w-72 max-w-[90vw] rounded-3xl bg-slate-900/95 backdrop-blur border border-white/20 shadow-xl p-2">
+        <div class="absolute top-full mt-2 z-20 w-72 max-w-[90vw] grouped py-1 shadow-2xl shadow-black/40">
           {locations.map((l) => (
             <button
               key={l.id}
               type="button"
               onClick={() => choose(l.id)}
-              class={`w-full rounded-2xl px-4 py-3 text-left text-sm min-h-11 hover:bg-white/10 transition ${
-                l.id === currentId ? "bg-white/10 font-semibold" : ""
+              class={`grouped-row w-full text-left text-[17px] transition hover:bg-white/5 ${
+                l.id === currentId
+                  ? "font-semibold text-white"
+                  : "text-white/85"
               }`}
             >
-              📍 {l.name}
+              {l.name}
+              {l.id === currentId && (
+                <span class="ml-auto text-[13px] muted font-normal">
+                  Aktywna
+                </span>
+              )}
             </button>
           ))}
           <a
             href="/lokalizacje"
-            class="block w-full rounded-2xl px-4 py-3 text-left text-sm text-white/60 hover:bg-white/10 transition min-h-11"
+            class="grouped-row w-full text-[15px] muted hover:bg-white/5 transition"
           >
-            ⚙️ Edytuj lokalizacje…
+            Edytuj lokalizacje
+            <span class="chevron ml-auto" aria-hidden="true" />
           </a>
         </div>
       )}
