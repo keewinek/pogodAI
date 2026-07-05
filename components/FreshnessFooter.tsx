@@ -22,8 +22,9 @@ export function FreshnessFooter(
           {warning && <span class="block mt-0.5 opacity-90">{warning}</span>}
         </p>
       </div>
-      <p class="mt-3 text-[11px] muted leading-relaxed max-w-[16rem] mx-auto">
-        Synteza z {sources.length} źródeł
+      <p class="mt-3 text-[11px] muted leading-relaxed max-w-xs mx-auto px-2">
+        Synteza z: {sources.slice(0, 8).join(" · ")}
+        {sources.length > 8 ? ` · +${sources.length - 8}` : ""}
       </p>
     </footer>
   );

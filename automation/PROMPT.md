@@ -118,8 +118,11 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 
 - `days`: 7 dni, `[0]` = dziś.
 - `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–7 co 3 h (8 wpisów).
-- Godzinówkę **przepisz programowo** z Open-Meteo hourly (`deno eval` / `jq`) —
-  mapuj `weather_code` na emoji; nie generuj 150+ wpisów tokenami.
+- Godzinówkę **przepisz programowo** z Open-Meteo hourly — nie generuj 150+
+  wpisów tokenami:
+  `deno run -A https://raw.githubusercontent.com/keewinek/pogodAI/main/scripts/map-open-meteo-hourly.ts {lat} {lon}`
+  (mapuje `weather_code` → emoji wg WMO; skrypt w repo:
+  `scripts/map-open-meteo-hourly.ts`)
 - `time` w strefie Europe/Warsaw.
 - Emoji tylko: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨
 - Liczby całkowite: °C, km/h, %.

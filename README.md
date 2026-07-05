@@ -27,6 +27,8 @@ Szczegółowe plany w folderze `Context/`.
 | GET    | `/api/forecast/:locationId` | —           | Najnowsza prognoza dla lokalizacji |
 | POST   | `/api/forecast`             | —           | Zapis prognozy (automatyzacja)     |
 | GET    | `/api/health`               | —           | Status systemu                     |
+| GET    | `/api/geocode/search?q=`    | —           | Autocomplete miejscowości (PL)     |
+| GET    | `/api/geocode/reverse`      | —           | Reverse geocoding (GPS → nazwa)    |
 
 ## Development
 
@@ -34,6 +36,7 @@ Wymagany [Deno](https://docs.deno.com/runtime/getting_started/installation).
 
 ```bash
 deno task dev          # dev server (Vite)
+deno task check        # fmt + lint + typy + testy
 deno task build        # build produkcyjny
 deno task start        # serwuj build (port 8000)
 ```
@@ -42,6 +45,7 @@ Test end-to-end z przykładową prognozą:
 
 ```bash
 ./scripts/seed-forecast.sh http://localhost:8000 warszawa-bialoleka
+./scripts/seed-forecast.sh https://pogodai.keewinek.deno.net/   # prod
 ```
 
 ## Deploy

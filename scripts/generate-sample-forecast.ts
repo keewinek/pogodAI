@@ -54,9 +54,26 @@ for (let i = 0; i < 7; i++) {
 const forecast: Forecast = {
   locationId,
   generatedAt: new Date().toISOString(),
-  sources: ["open-meteo", "yr.no", "google", "tvn", "interia"],
+  sources: [
+    "open-meteo-icon",
+    "open-meteo-gfs",
+    "open-meteo-ecmwf",
+    "yr.no",
+    "imgw",
+    "tvn",
+    "interia",
+    "onet",
+    "meteo.pl",
+    "accuweather",
+    "weather.com",
+    "meteoblue",
+    "foreca",
+    "google",
+    "msn",
+  ],
   verdict: {
-    text: "Chłodno i przelotnie deszczowo po południu — weź parasol.",
+    text:
+      "Po południu przelotny deszcz — weź parasol. ICON, GFS i ECMWF zbieżnie pokazują front; 12/15 źródeł potwierdza opady po 14:00.",
     emoji: "🌧️",
     temperature: 14,
     feelsLike: 12,
