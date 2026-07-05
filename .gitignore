@@ -7,6 +7,9 @@
 
 # Fresh build directory
 _fresh/
+# Deno KV local database
+*.sqlite
+*.sqlite-journal
 # npm + other dependencies
 node_modules/
 vendor/

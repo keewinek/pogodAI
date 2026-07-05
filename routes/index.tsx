@@ -1,33 +1,43 @@
-import { useSignal } from "@preact/signals";
 import { Head } from "fresh/runtime";
+import { page } from "fresh";
 import { define } from "../utils.ts";
-import Counter from "../islands/Counter.tsx";
+import { listLocations } from "../lib/db.ts";
+import { WeatherLayout } from "../components/WeatherLayout.tsx";
+import LocationGate from "../islands/LocationGate.tsx";
 
-export default define.page(function Home(ctx) {
-  const count = useSignal(3);
+export const handler = define.handlers({
+  async GET() {
+    const locations = await listLocations();
+    return page({ locations });
+  },
+});
 
-  console.log("Shared value " + ctx.state.shared);
+export default define.page<typeof handler>(({ data }) => {
+  const { locations } = data;
 
   return (
-    <div class="px-4 py-8 mx-auto fresh-gradient min-h-screen">
+    <WeatherLayout theme="night">
       <Head>
-        <title>Fresh counter</title>
+        <title>PogodAI — Wybierz lokalizację</title>
       </Head>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
-        <img
-          class="my-6"
-          src="/logo.svg"
-          width="128"
-          height="128"
-          alt="the Fresh logo: a sliced lemon dripping with juice"
-        />
-        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
-        <p class="my-4">
-          Try updating this message in the
-          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
+
+      <header class="text-center pt-4 space-y-2">
+        <h1 class="text-4xl font-light">PogodAI 🌦️</h1>
+        <p class="text-white/70">Wybierz lokalizację</p>
+      </header>
+
+      <LocationGate locations={locations} showPicker />
+
+      {locations.length > 0 && (
+        <p class="text-center">
+          <a
+            href="/lokalizacje"
+            class="text-sm text-white/60 underline underline-offset-4"
+          >
+            Edytuj lokalizacje…
+          </a>
         </p>
-        <Counter count={count} />
-      </div>
-    </div>
+      )}
+    </WeatherLayout>
   );
 });

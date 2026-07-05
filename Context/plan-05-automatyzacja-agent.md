@@ -2,10 +2,11 @@
 
 ## 1. Rola
 
-Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyzuje "jedną prawdziwą prognozę" i wysyła ją do API na Deno Deploy. Bez płatnych API — cała inteligencja to model dostępny w subskrypcji Cursora.
+Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyzuje
+"jedną prawdziwą prognozę" i wysyła ją do API na Deno Deploy. Bez płatnych API —
+cała inteligencja to model dostępny w subskrypcji Cursora.
 
 ## 2. Konfiguracja automatyzacji
-
 
 | Parametr       | Wartość                                       |
 | -------------- | --------------------------------------------- |
@@ -13,9 +14,6 @@ Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyz
 | Harmonogram    | cron `0 * * * *` (co godzinę)                 |
 | Dostęp do repo | niepotrzebny (agent działa wyłącznie na HTTP) |
 | Sekrety        | `POGODAI_SECRET` w konfiguracji automatyzacji |
-
-
-
 
 ## 3. Przepływ agenta (krok po kroku)
 
@@ -38,63 +36,75 @@ Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyz
 3. Podsumuj przebieg (ile lokalizacji OK / błędy).
 ```
 
-
-
 ## 4. Źródła danych
 
-Adresy budowane z `lat`/`lon` lub nazwy lokalizacji. Trzy warstwy źródeł: **rdzeń** (zawsze), **pula rotacyjna** (agent dobiera kilka) i **odkrywanie dynamiczne** (agent sam znajduje dodatkowe źródła w wyszukiwarce).
+Adresy budowane z `lat`/`lon` lub nazwy lokalizacji. Trzy warstwy źródeł:
+**rdzeń** (zawsze), **pula rotacyjna** (agent dobiera kilka) i **odkrywanie
+dynamiczne** (agent sam znajduje dodatkowe źródła w wyszukiwarce).
 
 ### 4.1 Rdzeń — zawsze pobierane (twarde liczby + godzinówka)
 
-| Źródło | Typ | Jak adresować |
-| --- | --- | --- |
-| Open-Meteo (multi-model) | modele numeryczne | `api.open-meteo.com/v1/forecast?latitude=..&longitude=..&models=icon_seamless,gfs_seamless,ecmwf_ifs025&...` — jeden request zwraca prognozy z **3 modeli naraz** (ICON, GFS, ECMWF); JSON wprost, bez Jina |
-| IMGW-PIB | państwowy instytut (PL) | `danepubliczne.imgw.pl/api/data/synop/station/<stacja>` (aktualny pomiar) + `meteo.imgw.pl` przez Jina (prognoza) |
-| Google Weather | agregator | `r.jina.ai/https://www.google.com/search?q=pogoda+<miasto>` |
+| Źródło                   | Typ                     | Jak adresować                                                                                                                                                                                               |
+| ------------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Open-Meteo (multi-model) | modele numeryczne       | `api.open-meteo.com/v1/forecast?latitude=..&longitude=..&models=icon_seamless,gfs_seamless,ecmwf_ifs025&...` — jeden request zwraca prognozy z **3 modeli naraz** (ICON, GFS, ECMWF); JSON wprost, bez Jina |
+| IMGW-PIB                 | państwowy instytut (PL) | `danepubliczne.imgw.pl/api/data/synop/station/<stacja>` (aktualny pomiar) + `meteo.imgw.pl` przez Jina (prognoza)                                                                                           |
+| Google Weather           | agregator               | `r.jina.ai/https://www.google.com/search?q=pogoda+<miasto>`                                                                                                                                                 |
 
 ### 4.2 Pula rotacyjna — agent wybiera 3–5 na przebieg
 
-Agent dobiera z puli tak, by w sumie mieć 6–8 źródeł; jeśli któreś padnie, sięga po następne z listy:
+Agent dobiera z puli tak, by w sumie mieć 6–8 źródeł; jeśli któreś padnie, sięga
+po następne z listy:
 
-| Źródło | Typ | Jak adresować (przez `r.jina.ai/` o ile nie zaznaczono) |
-| --- | --- | --- |
-| TVN Meteo | serwis redakcyjny (PL) | `tvnmeteo.tvn24.pl/pogoda/...` |
-| Interia Pogoda | serwis redakcyjny (PL) | `pogoda.interia.pl/prognoza-szczegolowa-...` |
-| Onet Pogoda | serwis redakcyjny (PL) | `pogoda.onet.pl/prognoza-pogody/...` |
-| WP Pogoda | serwis redakcyjny (PL) | `pogoda.wp.pl/...` |
-| ICM Meteo (UM) | model UM 4km (PL, kultowy) | `meteo.pl` — meteogramy; wersja tekstowa ograniczona, traktować jako uzupełnienie |
-| AccuWeather | agregator globalny | `accuweather.com/pl/pl/<miasto>/...` |
-| Weather.com (TWC) | agregator globalny | `weather.com/pl-PL/pogoda/dzisiaj/l/<lat>,<lon>` |
-| Meteoblue | modele numeryczne (wizualizacja) | `meteoblue.com/pl/pogoda/tydzien/<miasto>` |
-| YR.no | norweski instytut (MET Norway) | `api.met.no/weatherapi/locationforecast/2.0/compact?lat=..&lon=..` — darmowe API JSON (wymaga nagłówka User-Agent), bez Jina |
-| WetterOnline PL | serwis redakcyjny (DE/PL) | `wetteronline.pl/pogoda/<miasto>` |
-| Foreca | agregator fiński | `foreca.pl/Poland/<miasto>` |
-| MSN Pogoda | agregator | `msn.com/pl-pl/pogoda/prognoza/...` |
+| Źródło            | Typ                              | Jak adresować (przez `r.jina.ai/` o ile nie zaznaczono)                                                                      |
+| ----------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| TVN Meteo         | serwis redakcyjny (PL)           | `tvnmeteo.tvn24.pl/pogoda/...`                                                                                               |
+| Interia Pogoda    | serwis redakcyjny (PL)           | `pogoda.interia.pl/prognoza-szczegolowa-...`                                                                                 |
+| Onet Pogoda       | serwis redakcyjny (PL)           | `pogoda.onet.pl/prognoza-pogody/...`                                                                                         |
+| WP Pogoda         | serwis redakcyjny (PL)           | `pogoda.wp.pl/...`                                                                                                           |
+| ICM Meteo (UM)    | model UM 4km (PL, kultowy)       | `meteo.pl` — meteogramy; wersja tekstowa ograniczona, traktować jako uzupełnienie                                            |
+| AccuWeather       | agregator globalny               | `accuweather.com/pl/pl/<miasto>/...`                                                                                         |
+| Weather.com (TWC) | agregator globalny               | `weather.com/pl-PL/pogoda/dzisiaj/l/<lat>,<lon>`                                                                             |
+| Meteoblue         | modele numeryczne (wizualizacja) | `meteoblue.com/pl/pogoda/tydzien/<miasto>`                                                                                   |
+| YR.no             | norweski instytut (MET Norway)   | `api.met.no/weatherapi/locationforecast/2.0/compact?lat=..&lon=..` — darmowe API JSON (wymaga nagłówka User-Agent), bez Jina |
+| WetterOnline PL   | serwis redakcyjny (DE/PL)        | `wetteronline.pl/pogoda/<miasto>`                                                                                            |
+| Foreca            | agregator fiński                 | `foreca.pl/Poland/<miasto>`                                                                                                  |
+| MSN Pogoda        | agregator                        | `msn.com/pl-pl/pogoda/prognoza/...`                                                                                          |
 
 ### 4.3 Odkrywanie dynamiczne — agent sam dobiera dodatkowe źródła
 
 Poza stałymi listami agent może dodać 1–2 źródła "z ulicy":
 
-1. Agent wykonuje wyszukiwanie: `r.jina.ai/https://www.google.com/search?q=prognoza+pogody+<miasto>` (i/lub `duckduckgo.com/html/?q=...`).
-2. Z wyników wybiera 1–2 serwisy pogodowe, których **nie ma** jeszcze w tym przebiegu (np. lokalny portal miejski, regionalne media) i pobiera je przez Jina.
-3. Kryteria wyboru: strona wygląda na prognozę (są liczby: temperatura, opady), dotyczy właściwej miejscowości, treść po polsku lub angielsku.
-4. Użyte źródło dynamiczne trafia do `sources` pod swoją domeną (np. `"pogoda.lokalneradio.pl"`).
-5. Zakaz: strony wymagające logowania, PDF-y, fora/social media, strony starsze niż z bieżącej doby.
+1. Agent wykonuje wyszukiwanie:
+   `r.jina.ai/https://www.google.com/search?q=prognoza+pogody+<miasto>` (i/lub
+   `duckduckgo.com/html/?q=...`).
+2. Z wyników wybiera 1–2 serwisy pogodowe, których **nie ma** jeszcze w tym
+   przebiegu (np. lokalny portal miejski, regionalne media) i pobiera je przez
+   Jina.
+3. Kryteria wyboru: strona wygląda na prognozę (są liczby: temperatura, opady),
+   dotyczy właściwej miejscowości, treść po polsku lub angielsku.
+4. Użyte źródło dynamiczne trafia do `sources` pod swoją domeną (np.
+   `"pogoda.lokalneradio.pl"`).
+5. Zakaz: strony wymagające logowania, PDF-y, fora/social media, strony starsze
+   niż z bieżącej doby.
 
 ### 4.4 Źródła odrzucone (nie próbować ponownie)
 
-| Źródło | Powód odrzucenia (sprawdzone 2026-07) |
-| --- | --- |
+| Źródło                     | Powód odrzucenia (sprawdzone 2026-07)                                                                                                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Apple Weather / WeatherKit | Jedyna legalna droga to WeatherKit REST API, które wymaga płatnego konta Apple Developer (99 USD/rok) — konflikt z zasadą "bez płatnych API". Web `weather.apple.com` zwraca 403 zarówno bezpośrednio, jak i przez `r.jina.ai` (zabezpieczenia Apple). |
 
 Uwagi:
-- **Open-Meteo multi-model** to najważniejszy ruch: parametr `models=` daje trzy niezależne modele numeryczne w jednym tanim JSON-ie — realizuje wymóg "wielu modeli matematycznych" bez dodatkowych tokenów.
-- **YR.no i IMGW** mają czyste, darmowe API — tanie tokenowo, warto mieć zawsze w grze.
-- Dokładne URL-e per lokalizacja najlepiej trzymać jako szablony w prompcie automatyzacji; jeśli URL serwisu nie istnieje dla danej miejscowości, agent pomija źródło (w `sources` tylko faktycznie użyte).
-- Budżet: 6–8 źródeł stałych + maks. 2 dynamiczne = do 10 źródeł na lokalizację na przebieg.
 
-
-
+- **Open-Meteo multi-model** to najważniejszy ruch: parametr `models=` daje trzy
+  niezależne modele numeryczne w jednym tanim JSON-ie — realizuje wymóg "wielu
+  modeli matematycznych" bez dodatkowych tokenów.
+- **YR.no i IMGW** mają czyste, darmowe API — tanie tokenowo, warto mieć zawsze
+  w grze.
+- Dokładne URL-e per lokalizacja najlepiej trzymać jako szablony w prompcie
+  automatyzacji; jeśli URL serwisu nie istnieje dla danej miejscowości, agent
+  pomija źródło (w `sources` tylko faktycznie użyte).
+- Budżet: 6–8 źródeł stałych + maks. 2 dynamiczne = do 10 źródeł na lokalizację
+  na przebieg.
 
 ## 5. Prompt automatyzacji (szkic do wklejenia w Cursor Automations)
 
@@ -168,10 +178,7 @@ ZASADY:
 - Nie zmyślaj: jeśli masz tylko 1 źródło, napisz to w werdykcie.
 ```
 
-
-
 ## 6. Odporność na błędy
-
 
 | Scenariusz                              | Zachowanie                                                                             |
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -181,23 +188,31 @@ ZASADY:
 | POST zwraca 400                         | Agent czyta `error`, poprawia JSON, ponawia raz                                        |
 | Deno Deploy nie odpowiada               | Ponowna próba raz; potem raport błędu                                                  |
 
-
-Detekcja awarii przez człowieka: wskaźnik świeżości na stronie (UX §3) + historia przebiegów w panelu Cursor Automations.
+Detekcja awarii przez człowieka: wskaźnik świeżości na stronie (UX §3) +
+historia przebiegów w panelu Cursor Automations.
 
 ## 7. Koszty tokenów — dyscyplina
 
 - Jina Reader zwraca czysty Markdown zamiast HTML (~10× mniej tokenów).
-- Najtańsze źródła robią najcięższą robotę: Open-Meteo multi-model (3 modele w jednym JSON-ie) i YR.no (zwarty JSON) dają twarde liczby niemal za darmo tokenowo; serwisy redakcyjne służą do korekty werdyktu i lokalnego kontekstu.
-- Godzinówka: agent nie "wymyśla" 88+ wpisów godzinowych — przepisuje je programowo/mechanicznie z `hourly` Open-Meteo (najlepiej krótkim skryptem, np. `deno eval`/`jq`, zamiast generować tokeny na każdy wpis). AI syntetyzuje tylko werdykt, podsumowania dzienne i emoji.
-- Limit źródeł: ≤ 10/lokalizację (3 rdzeń + 3–5 z puli + 0–2 dynamiczne); limit lokalizacji praktyczny: ~5 (przy 24 przebiegach/dobę). Gdyby przebiegi robiły się za drogie, kolejność cięć: najpierw źródła dynamiczne do 0, potem pula do 2 — rdzeń zostaje nietknięty.
-- Prompt każe agentowi NIE cytować całych stron w odpowiedziach, tylko wyciągać liczby.
-
-
+- Najtańsze źródła robią najcięższą robotę: Open-Meteo multi-model (3 modele w
+  jednym JSON-ie) i YR.no (zwarty JSON) dają twarde liczby niemal za darmo
+  tokenowo; serwisy redakcyjne służą do korekty werdyktu i lokalnego kontekstu.
+- Godzinówka: agent nie "wymyśla" 88+ wpisów godzinowych — przepisuje je
+  programowo/mechanicznie z `hourly` Open-Meteo (najlepiej krótkim skryptem, np.
+  `deno eval`/`jq`, zamiast generować tokeny na każdy wpis). AI syntetyzuje
+  tylko werdykt, podsumowania dzienne i emoji.
+- Limit źródeł: ≤ 10/lokalizację (3 rdzeń + 3–5 z puli + 0–2 dynamiczne); limit
+  lokalizacji praktyczny: ~5 (przy 24 przebiegach/dobę). Gdyby przebiegi robiły
+  się za drogie, kolejność cięć: najpierw źródła dynamiczne do 0, potem pula do
+  2 — rdzeń zostaje nietknięty.
+- Prompt każe agentowi NIE cytować całych stron w odpowiedziach, tylko wyciągać
+  liczby.
 
 ## 8. Testowanie
 
-1. **Ręczny przebieg:** uruchomić automatyzację raz ręcznie (przycisk "Run now") przed włączeniem crona.
+1. **Ręczny przebieg:** uruchomić automatyzację raz ręcznie (przycisk "Run now")
+   przed włączeniem crona.
 2. Sprawdzić: `GET /api/forecast/warszawa-bialoleka` zwraca świeży JSON.
 3. Sprawdzić stronę: werdykt się wyświetla, świeżość "przed chwilą".
-4. Test negatywny: POST ze złym sekretem → 401; POST z nieistniejącym `locationId` → 404.
-
+4. Test negatywny: POST ze złym sekretem → 401; POST z nieistniejącym
+   `locationId` → 404.
