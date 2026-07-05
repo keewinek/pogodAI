@@ -6,26 +6,40 @@ Użytkownik otwiera stronę i w **poniżej 2 sekundy** wie: *jaka będzie pogoda
 
 ## 2. Kluczowe przepływy (user flows)
 
-### 2.1 Codzienne sprawdzenie pogody (główny, 95% użyć)
+### 2.1 Pierwsze wejście (brak zapisanej lokalizacji)
+
+1. Użytkownik otwiera `/`.
+2. Widzi panel "Wybierz lokalizację" (lista kart lokalizacji, SSR).
+3. Tap na lokalizację → island zapisuje `localStorage.pogodai_location = <id>` → nawigacja do `/[lokalizacja]`.
+
+### 2.2 Codzienne sprawdzenie pogody (główny, 95% użyć)
 
 1. Użytkownik otwiera `/` (np. z ikony na ekranie głównym telefonu).
-2. Strona renderuje się serwerowo (SSR) — od razu z danymi, bez spinnera.
-3. Widzi: emoji + temperaturę + werdykt. Koniec — cel osiągnięty.
-4. Opcjonalnie scrolluje do prognozy wielodniowej.
+2. Island `LocationGate` znajduje zapis w `localStorage` i robi `location.replace("/" + id)` — bez wpisu w historii przeglądarki (przycisk "wstecz" nie wraca na pusty `/`).
+3. `/[lokalizacja]` renderuje się serwerowo (SSR) — od razu z pełnymi danymi, bez spinnera.
+4. Widzi: emoji + temperaturę + werdykt + najbliższe godziny. Koniec — cel osiągnięty.
+5. Opcjonalnie scrolluje do prognozy wielodniowej; tap w dzień rozwija jego prognozę godzinową.
 
 Wymagania UX:
-- **Zero spinnerów na starcie** — dane wstrzyknięte w SSR z KV (odczyt KV to milisekundy).
-- Ostatnio wybrana lokalizacja pamiętana w `localStorage`; przy pierwszym renderze SSR używamy domyślnej (pierwszej) lokalizacji, a island podmienia na zapamiętaną jeśli inna (albo: ciasteczko `location` czytane serwerowo — preferowane, bo unika mignięcia treści).
-- Decyzja: **lokalizacja w cookie** (`pogodai_location=<id>`), ustawiane przez `LocationPicker`. SSR czyta cookie i od razu renderuje właściwą lokalizację. `localStorage` niepotrzebny.
+- **Zero spinnerów** na `/[lokalizacja]` — dane wstrzyknięte w SSR z KV (odczyt KV to milisekundy).
+- Decyzja: **lokalizacja w `localStorage`**, redirect kliencki z `/`. Konsekwencja: `/` mignie na ułamek sekundy przed przekierowaniem — akceptowalne; w zamian strona `/[lokalizacja]` ma stabilny, udostępnialny URL i pełny SSR. Można też dodać ikonę na ekran główny telefonu wskazującą bezpośrednio na `/warszawa-bialoleka` i całkiem ominąć redirect.
+- Jeśli zapisany w `localStorage` id nie istnieje już na liście lokalizacji (usunięty), `LocationGate` czyści zapis i pokazuje panel wyboru.
 
-### 2.2 Zmiana lokalizacji
+### 2.3 Zmiana lokalizacji
 
-1. Tap na pigułkę lokalizacji na górze.
+1. Tap na pigułkę lokalizacji na górze strony prognozy.
 2. Rozwija się lista lokalizacji (dropdown/bottom-sheet).
-3. Tap na lokalizację → island ustawia cookie → pobiera `GET /api/forecast/:id` → podmienia dane na stronie bez pełnego przeładowania (albo prosto: `location.reload()` — akceptowalne, SSR jest szybki; na start wybieramy reload dla prostoty).
-4. Kolejne wejścia od razu pokazują tę lokalizację.
+3. Tap na lokalizację → island zapisuje nowy id w `localStorage` → nawigacja do `/[nowa-lokalizacja]` (pełne przejście, SSR jest szybki).
+4. Kolejne wejścia na `/` przekierowują już na tę lokalizację.
 
-### 2.3 Edycja listy lokalizacji (rzadkie, tylko właściciel)
+### 2.4 Prognoza godzinowa
+
+1. Pod werdyktem zawsze widoczny pasek "Najbliższe godziny" (scroll poziomy, dziś od bieżącej godziny; pod koniec dnia doklejony początek jutra) — najczęstsze pytanie "czy za 3h będzie padać" ma odpowiedź bez żadnego kliknięcia.
+2. Tap w wiersz dnia w liście dni → wiersz rozwija się (akordeon) i pokazuje `summary` + pasek godzinowy tego dnia (dziś/jutro co 1 h, dalsze dni co 3 h).
+3. Tap w rozwinięty wiersz zwija go; rozwinięcie innego dnia zwija poprzedni (jeden naraz).
+4. Zero fetchowania — wszystkie godziny są w dokumencie z SSR, island tylko przełącza widoczność. Rozwinięcie jest natychmiastowe.
+
+### 2.5 Edycja listy lokalizacji (rzadkie, tylko właściciel)
 
 1. W dropdownie lokalizacji na dole link "Edytuj lokalizacje…" → `/lokalizacje`.
 2. Dodanie: nazwa + współrzędne (lat/lon) → walidacja → POST → wpis pojawia się na liście.
@@ -53,7 +67,7 @@ Aplikacja agreguje wiele źródeł — użytkownik musi wiedzieć, na czym stoi:
 
 ## 5. Wydajność i dostępność
 
-- SSR + minimalny JS (tylko 2 islands) → TTI niemal natychmiastowy.
+- SSR + minimalny JS (4 małe islands: gate, picker, editor, akordeon) → TTI niemal natychmiastowy.
 - Brak webfontów, brak bibliotek ikon, emoji zamiast SVG-ów.
 - Kontrast: biały tekst na gradientach — sprawdzić kontrast dla motywu `snowy` (jasne tło → ciemny tekst).
 - Elementy dotykowe ≥ 44px; dropdown obsługiwany też klawiaturą (focus/Enter/Escape).
@@ -67,6 +81,6 @@ Aplikacja agreguje wiele źródeł — użytkownik musi wiedzieć, na czym stoi:
 
 ## 7. Antywzorce, których unikamy
 
-- Brak reklam, pop-upów, zgód cookie (cookie funkcjonalne, apka prywatna).
+- Brak reklam, pop-upów, banerów zgód (jedyny zapis po stronie klienta to `localStorage` z wybraną lokalizacją, apka prywatna).
 - Brak przeładowanego dashboardu — jedna kolumna, jedna odpowiedź.
 - Brak ukrywania werdyktu poniżej zgięcia ekranu (fold) — werdykt widoczny bez scrollowania na typowym telefonie (~660px viewport).

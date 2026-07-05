@@ -6,12 +6,14 @@ Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyz
 
 ## 2. Konfiguracja automatyzacji
 
-| Parametr | Wartość |
-|---|---|
-| Nazwa | PogodAI — aktualizacja prognoz |
-| Harmonogram | cron `0 * * * *` (co godzinę) |
+
+| Parametr       | Wartość                                       |
+| -------------- | --------------------------------------------- |
+| Nazwa          | PogodAI — aktualizacja prognoz                |
+| Harmonogram    | cron `0 * * * *` (co godzinę)                 |
 | Dostęp do repo | niepotrzebny (agent działa wyłącznie na HTTP) |
-| Sekrety | `POGODAI_SECRET` w konfiguracji automatyzacji |
+| Sekrety        | `POGODAI_SECRET` w konfiguracji automatyzacji |
+
 
 ## 3. Przepływ agenta (krok po kroku)
 
@@ -34,21 +36,20 @@ Serce systemu: co godzinę agent AI pobiera prognozy z wielu źródeł, syntetyz
 3. Podsumuj przebieg (ile lokalizacji OK / błędy).
 ```
 
+
+
 ## 4. Źródła danych
 
 Adresy budowane z `lat`/`lon` lub nazwy lokalizacji. Zestaw startowy (3–4 źródła — kompromis między jakością syntezy a tokenami):
 
-| Źródło | Typ | Jak adresować |
-|---|---|---|
-| TVN Meteo | serwis redakcyjny | wyszukanie/URL miasta, np. `tvnmeteo.tvn24.pl/pogoda/...` |
-| Interia Pogoda | serwis redakcyjny | `pogoda.interia.pl/prognoza-szczegolowa-...` |
-| Google Weather | agregator | `google.com/search?q=pogoda+<miasto>` przez Jina |
-| Open-Meteo | modele numeryczne (GFS/ICON/ECMWF) | `api.open-meteo.com/v1/forecast?latitude=..&longitude=..&daily=..` — darmowe API bez klucza, JSON wprost (nie wymaga Jina) |
 
-Uwagi:
-- **Open-Meteo** to darmowe, bezkluczowe API dające dane z kilku modeli matematycznych naraz — idealnie realizuje wymóg "wiele modeli matematycznych" z idea.md i jest najstabilniejszym źródłem (czysty JSON). Redakcyjne serwisy dają lokalny kontekst, Open-Meteo daje twarde liczby.
-- Dokładne URL-e per lokalizacja najlepiej trzymać jako szablony w prompcie automatyzacji; jeśli URL serwisu redakcyjnego nie istnieje dla danej miejscowości, agent pomija to źródło (odnotowuje w `sources` tylko faktycznie użyte).
-- Ostrożnie z liczbą źródeł × liczbą lokalizacji — każde źródło to tokeny. Limit: ≤ 4 źródła na lokalizację.
+| Źródło         | Typ                                | Jak adresować                                                                                                              |
+| -------------- | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| TVN Meteo      | serwis redakcyjny                  | wyszukanie/URL miasta, np. `tvnmeteo.tvn24.pl/pogoda/...`                                                                  |
+| Interia Pogoda | serwis redakcyjny                  | `pogoda.interia.pl/prognoza-szczegolowa-...`                                                                               |
+| Google Weather | agregator                          | `google.com/search?q=pogoda+<miasto>` przez Jina                                                                           |
+| Open-Meteo     | modele numeryczne (GFS/ICON/ECMWF) | `api.open-meteo.com/v1/forecast?latitude=..&longitude=..&daily=..` — darmowe API bez klucza, JSON wprost (nie wymaga Jina) |
+
 
 ## 5. Prompt automatyzacji (szkic do wklejenia w Cursor Automations)
 
@@ -58,7 +59,7 @@ Jesteś agentem PogodAI. Twoje zadanie: zaktualizować prognozy pogody.
 KROKI:
 1. Pobierz listę lokalizacji: curl -s https://pogodai.deno.dev/api/locations
 2. Dla każdej lokalizacji zbierz dane pogodowe:
-   - Open-Meteo: curl -s "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FWarsaw&forecast_days=7"
+   - Open-Meteo: curl -s "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FWarsaw&forecast_days=7"
    - TVN Meteo i Interia: pobierz przez https://r.jina.ai/<pełny-url> (czysty Markdown)
    - Google: curl -s "https://r.jina.ai/https://www.google.com/search?q=pogoda+{nazwa}"
    Jeśli któreś źródło zawiedzie — pomiń je i pracuj na pozostałych.
@@ -83,25 +84,37 @@ SCHEMAT JSON:
   },
   "days": [  // 7 dni, [0] = dziś
     { "date": "YYYY-MM-DD", "summary": "1 zdanie", "emoji": "⛅",
-      "tempMin": 9, "tempMax": 15, "precipitationChance": 70, "windKmh": 18 }
+      "tempMin": 9, "tempMax": 15, "precipitationChance": 70, "windKmh": 18,
+      "hours": [  // dziś i jutro: co 1h (24 wpisy); dni 3-7: co 3h (8 wpisów)
+        { "time": "YYYY-MM-DDTHH:00", "emoji": "🌧️", "temperature": 14,
+          "precipitationChance": 70, "windKmh": 18 }
+      ] }
   ]
 }
 
 ZASADY:
 - Emoji tylko z zestawu: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨
 - Liczby całkowite. Temperatury w °C, wiatr w km/h, opady w %.
+- Dane godzinowe (hours) bierz wprost z hourly Open-Meteo (mapuj weather_code
+  na emoji); serwisów redakcyjnych używaj do korekty werdyktu i podsumowań
+  dziennych — nie przepisuj z nich godzinówki ręcznie.
+- "time" w czasie lokalnym Europe/Warsaw (tak zwraca Open-Meteo z timezone).
 - Nie zmyślaj: jeśli masz tylko 1 źródło, napisz to w werdykcie.
 ```
 
+
+
 ## 6. Odporność na błędy
 
-| Scenariusz | Zachowanie |
-|---|---|
+
+| Scenariusz                              | Zachowanie                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------------- |
 | Jedno źródło padło / zmienił się layout | Agent pomija źródło, syntetyzuje z pozostałych, `sources` odzwierciedla stan faktyczny |
-| Wszystkie źródła padły dla lokalizacji | Agent NIE wysyła POST (stara prognoza w KV pozostaje; frontend pokaże jej wiek) |
-| POST zwraca 401 | Błąd konfiguracji sekretu — agent raportuje w podsumowaniu przebiegu, nie ponawia |
-| POST zwraca 400 | Agent czyta `error`, poprawia JSON, ponawia raz |
-| Deno Deploy nie odpowiada | Ponowna próba raz; potem raport błędu |
+| Wszystkie źródła padły dla lokalizacji  | Agent NIE wysyła POST (stara prognoza w KV pozostaje; frontend pokaże jej wiek)        |
+| POST zwraca 401                         | Błąd konfiguracji sekretu — agent raportuje w podsumowaniu przebiegu, nie ponawia      |
+| POST zwraca 400                         | Agent czyta `error`, poprawia JSON, ponawia raz                                        |
+| Deno Deploy nie odpowiada               | Ponowna próba raz; potem raport błędu                                                  |
+
 
 Detekcja awarii przez człowieka: wskaźnik świeżości na stronie (UX §3) + historia przebiegów w panelu Cursor Automations.
 
@@ -109,8 +122,11 @@ Detekcja awarii przez człowieka: wskaźnik świeżości na stronie (UX §3) + h
 
 - Jina Reader zwraca czysty Markdown zamiast HTML (~10× mniej tokenów).
 - Open-Meteo zwraca zwarty JSON (setki tokenów, nie tysiące).
+- Godzinówka: agent nie "wymyśla" 88+ wpisów godzinowych — przepisuje je programowo/mechanicznie z `hourly` Open-Meteo (najlepiej krótkim skryptem, np. `deno eval`/`jq`, zamiast generować tokeny na każdy wpis). AI syntetyzuje tylko werdykt, podsumowania dzienne i emoji.
 - Limit źródeł: ≤ 4/lokalizację; limit lokalizacji praktyczny: ~5 (przy 24 przebiegach/dobę).
 - Prompt każe agentowi NIE cytować całych stron w odpowiedziach, tylko wyciągać liczby.
+
+
 
 ## 8. Testowanie
 
@@ -118,3 +134,4 @@ Detekcja awarii przez człowieka: wskaźnik świeżości na stronie (UX §3) + h
 2. Sprawdzić: `GET /api/forecast/warszawa-bialoleka` zwraca świeży JSON.
 3. Sprawdzić stronę: werdykt się wyświetla, świeżość "przed chwilą".
 4. Test negatywny: POST ze złym sekretem → 401; POST z nieistniejącym `locationId` → 404.
+

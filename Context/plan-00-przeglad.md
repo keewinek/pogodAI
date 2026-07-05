@@ -12,7 +12,8 @@ Osobisty, hiperlokalny system prognozowania pogody. Zamiast jednego, często nie
 |---|---|
 | Framework | **Fresh 2** (Deno + Vite + Preact islands + Tailwind) — istniejący scaffold w repo |
 | Baza danych | **Deno KV** — tylko najnowsza prognoza per lokalizacja (bez historii) |
-| Zakres prognozy | Werdykt na dziś + prognoza wielodniowa (5–7 dni) |
+| Zakres prognozy | Werdykt na dziś + prognoza wielodniowa (5–7 dni) + **prognoza godzinowa per dzień** (dziś i jutro co 1 h, dalsze dni co 3 h) |
+| Routing | `/` = panel wyboru lokalizacji (lub redirect wg `localStorage`); `/[lokalizacja]` = strona prognozy |
 | Edycja lokalizacji | Bez autoryzacji (strona prywatna); autoryzacja kluczem tylko dla POST prognozy z automatyzacji |
 | AI | Agent w **Cursor Cloud Automations** (cron co godzinę), bez płatnych API zewnętrznych |
 | Scraping | Przez `https://r.jina.ai/<URL>` — czysty Markdown, omija Cloudflare/RODO, oszczędza tokeny |
@@ -97,10 +98,19 @@ interface DayForecast {
   tempMax: number;
   precipitationChance: number; // 0–100 %
   windKmh: number;
+  hours: HourForecast[];       // dziś+jutro co 1 h (24 wpisy), dni 3+ co 3 h (8 wpisów)
+}
+
+interface HourForecast {
+  time: string;                // "2026-07-05T15:00" — czas lokalny Europe/Warsaw
+  emoji: string;
+  temperature: number;         // °C
+  precipitationChance: number; // 0–100 %
+  windKmh: number;
 }
 ```
 
-Uwaga: przechowujemy **tylko najnowszą** prognozę — POST nadpisuje wpis `["forecast", locationId]`.
+Uwaga: przechowujemy **tylko najnowszą** prognozę — POST nadpisuje wpis `["forecast", locationId]`. Rozmiar: 7 dni z godzinami to ~10–15 KiB JSON — mieści się w limicie 64 KiB wartości KV.
 
 ## 6. Fazy realizacji
 
@@ -112,8 +122,10 @@ Uwaga: przechowujemy **tylko najnowszą** prognozę — POST nadpisuje wpis `["f
 - [ ] `GET /api/locations`
 
 ### Faza 2 — MVP frontend
-- [ ] Strona główna: werdykt + prognoza dzienna dla wybranej lokalizacji (SSR)
-- [ ] Island wyboru lokalizacji (zapamiętanie w `localStorage`)
+- [ ] `/` — panel "Wybierz lokalizację" + island przekierowujący do `/[lokalizacja]` gdy zapis w `localStorage`
+- [ ] `/[lokalizacja]` — strona prognozy (SSR): werdykt + pasek godzinowy "dziś" + lista dni
+- [ ] Rozwijane wiersze dni (akordeon) z prognozą godzinową danego dnia
+- [ ] Island wyboru lokalizacji (zapis w `localStorage`, nawigacja do `/[lokalizacja]`)
 - [ ] Stylizacja mobile-first (Tailwind), wygląd nowoczesnej aplikacji pogodowej
 
 ### Faza 3 — Automatyzacja

@@ -90,7 +90,14 @@ Content-Type: application/json
     "windKmh": 18
   },
   "days": [
-    { "date": "2026-07-05", "summary": "Deszczowo od 15:00.", "emoji": "🌧️", "tempMin": 9, "tempMax": 15, "precipitationChance": 70, "windKmh": 18 }
+    {
+      "date": "2026-07-05", "summary": "Deszczowo od 15:00.", "emoji": "🌧️",
+      "tempMin": 9, "tempMax": 15, "precipitationChance": 70, "windKmh": 18,
+      "hours": [
+        { "time": "2026-07-05T15:00", "emoji": "🌧️", "temperature": 14, "precipitationChance": 70, "windKmh": 18 },
+        { "time": "2026-07-05T16:00", "emoji": "🌧️", "temperature": 13, "precipitationChance": 60, "windKmh": 16 }
+      ]
+    }
   ]
 }
 ```
@@ -99,7 +106,9 @@ Walidacja serwerowa:
 - autoryzacja → w razie braku/błędu **401** (bez szczegółów),
 - `locationId` musi istnieć na liście lokalizacji → inaczej **404**,
 - `days`: 1–8 elementów; liczby w sensownych zakresach (temp -60..60, opady 0..100, wiatr 0..300),
-- `verdict.text` niepusty, ≤ 300 znaków.
+- `days[i].hours`: 1–24 elementów, `time` w formacie `YYYY-MM-DDTHH:00`, te same zakresy liczb (dziś i jutro co 1 h = 24 wpisy, dni 3+ co 3 h = 8 wpisów),
+- `verdict.text` niepusty, ≤ 300 znaków,
+- łączny rozmiar body ≤ 60 KiB (limit wartości Deno KV to 64 KiB).
 
 **200:** `{ "ok": true }` — wpis `["forecast", locationId]` nadpisany.
 
@@ -114,7 +123,7 @@ Walidacja serwerowa:
 ## 3. Warstwa wspólna
 
 - **`utils.ts` / `lib/db.ts`:** `getKv()`, `listLocations()`, `addLocation()`, `deleteLocation()`, `getForecast(id)`, `setForecast(f)` — jedyne miejsce dotykające KV; trasy i strony SSR używają tych funkcji (strona główna czyta KV bezpośrednio przez tę warstwę, nie przez fetch własnego API).
-- **`lib/types.ts`:** interfejsy `Location`, `Forecast`, `DayForecast` (współdzielone przez API, SSR i islands).
+- **`lib/types.ts`:** interfejsy `Location`, `Forecast`, `DayForecast`, `HourForecast` (współdzielone przez API, SSR i islands).
 - **`lib/auth.ts`:** `requireBearer(req): boolean` — porównanie stałoczasowe z `POGODAI_SECRET`.
 - **Walidacja:** ręczne funkcje strażników typów (bez Zod — trzymamy zależności na zerze, walidowane pola są proste).
 - **Błędy:** zawsze `{ "error": string }` po polsku + właściwy status HTTP.
