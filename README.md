@@ -1,39 +1,52 @@
-# PogodAI
+# PogodAI 🌦️
 
-Najdokładniejsza pogoda pod słońcem — hiperlokalny werdykt AI po syntezie wielu
-źródeł.
+Najdokładniejsza pogoda pod słońcem. Osobisty, hiperlokalny system prognozowania
+pogody: agent AI (Cursor Cloud Automations) co godzinę agreguje dane z wielu
+serwisów i modeli pogodowych, a następnie syntetyzuje jedną, "ostateczną"
+prognozę z werdyktem po polsku.
 
-## Lokalnie
+Prod: **https://pogodai.keewinek.deno.net/**
+
+## Architektura
+
+- **Frontend + API:** Fresh 2 (Deno + Vite + Preact islands + Tailwind) na Deno
+  Deploy, dane w Deno KV.
+- **Agregator:** Cursor Cloud Automation (cron co godzinę) — prompt w
+  `automation/PROMPT.md`. Scraping przez `r.jina.ai`, twarde liczby z Open-Meteo
+  (multi-model) i YR.no.
+
+Szczegółowe plany w folderze `Context/`.
+
+## API
+
+| Metoda | Ścieżka                     | Autoryzacja             | Opis                               |
+| ------ | --------------------------- | ----------------------- | ---------------------------------- |
+| GET    | `/api/locations`            | —                       | Lista lokalizacji                  |
+| POST   | `/api/locations`            | —                       | Dodaj lokalizację                  |
+| DELETE | `/api/locations/:id`        | —                       | Usuń lokalizację (+ jej prognozę)  |
+| GET    | `/api/forecast/:locationId` | —                       | Najnowsza prognoza dla lokalizacji |
+| POST   | `/api/forecast`             | Bearer `POGODAI_SECRET` | Zapis prognozy (automatyzacja)     |
+| GET    | `/api/health`               | —                       | Status systemu                     |
+
+## Development
+
+Wymagany [Deno](https://docs.deno.com/runtime/getting_started/installation).
 
 ```bash
 cp .env.example .env   # ustaw POGODAI_SECRET
-deno task dev
+deno task dev          # dev server (Vite)
+deno task build        # build produkcyjny
+deno task start        # serwuj build (port 8000)
 ```
 
-## Produkcja (Deno Deploy)
-
-1. [dash.deno.com](https://dash.deno.com) → New Project → GitHub → `pogodAI`
-2. **App directory:** zostaw puste (katalog główny repo) — `deno.json` musi być
-   w rootcie
-3. Framework preset: **Fresh** (wykrywany z `deno.json` → `deploy.framework`)
-4. Env var: `POGODAI_SECRET` (`openssl rand -hex 32`)
-5. Push na `main` = deploy produkcyjny
-
-Jeśli build pada z `couldn't find deno.json` → w Settings → App configuration
-ustaw **App directory** na `.` (pusty root repo).
-
-### Seed prognozy (test)
+Test end-to-end z przykładową prognozą:
 
 ```bash
-POGODAI_SECRET=twoj-sekret ./scripts/seed-forecast.sh https://TWOJ-URL.deno.dev
+POGODAI_SECRET=... ./scripts/seed-forecast.sh http://localhost:8000 warszawa-bialoleka
 ```
 
-## Automatyzacja
+## Deploy
 
-Prompt dla Cursor Cloud Automation:
-[`automation/PROMPT.md`](automation/PROMPT.md)\
-Cron: `0 * * * *`
-
-## Stack
-
-Fresh 2 · Deno · Deno KV · Tailwind · Preact islands
+Push na `main` → automatyczny deploy na Deno Deploy (konfiguracja w `deno.json`
+→ `deploy`). Wymagana zmienna środowiskowa `POGODAI_SECRET` w ustawieniach
+aplikacji na Deno Deploy.

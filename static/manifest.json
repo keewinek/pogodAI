@@ -1,18 +1,18 @@
 {
   "name": "PogodAI",
   "short_name": "PogodAI",
-  "description": "Najdokładniejsza pogoda pod słońcem — werdykt AI z wielu źródeł",
+  "description": "Jedna, prawdziwa prognoza — synteza wielu źródeł przez AI.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1e1b4b",
-  "theme_color": "#312e81",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "lang": "pl",
   "icons": [
     {
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

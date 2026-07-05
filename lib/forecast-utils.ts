@@ -1,20 +1,31 @@
 import type { DayForecast, HourForecast } from "./types.ts";
-import { getCurrentWarsawHourKey } from "./time.ts";
 
-export function getNearestHours(
+/**
+ * Godziny do paska "Najbliższe godziny": dziś od bieżącej godziny;
+ * jeśli zostało < 6 wpisów, doklej początek jutra. Maks. 24 wpisy.
+ */
+export function upcomingHours(
   days: DayForecast[],
-  minCount = 6,
+  todayDate: string,
+  currentHour: number,
 ): HourForecast[] {
-  if (days.length === 0) return [];
+  const todayIdx = days.findIndex((d) => d.date === todayDate);
+  if (todayIdx === -1) return days[0]?.hours ?? [];
 
-  const currentKey = getCurrentWarsawHourKey();
-  const todayHours = days[0].hours.filter((hour) => hour.time >= currentKey);
-  const result = [...todayHours];
+  const today = days[todayIdx];
+  const result = today.hours.filter((h) => {
+    const hour = parseInt(h.time.slice(11, 13), 10);
+    return hour >= currentHour;
+  });
 
-  if (result.length < minCount && days.length > 1) {
-    const needed = minCount - result.length;
-    result.push(...days[1].hours.slice(0, needed));
+  if (result.length < 6) {
+    const tomorrow = days[todayIdx + 1];
+    if (tomorrow) result.push(...tomorrow.hours.slice(0, 8));
   }
+  return result.slice(0, 24);
+}
 
-  return result.length > 0 ? result : days[0].hours.slice(0, minCount);
+/** "2026-07-05T15:00" → "15:00" */
+export function hourLabel(time: string): string {
+  return time.slice(11, 16);
 }

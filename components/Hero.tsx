@@ -1,45 +1,18 @@
-import { cardClass } from "./WeatherLayout.tsx";
-import { isLightTheme, type WeatherTheme } from "../lib/theme.ts";
+import type { Verdict } from "../lib/types.ts";
 
-interface HeroProps {
-  emoji: string;
-  temperature: number;
-  feelsLike: number;
-  windKmh: number;
-  theme: WeatherTheme;
-}
-
-export function Hero(
-  { emoji, temperature, feelsLike, windKmh, theme }: HeroProps,
-) {
-  const light = isLightTheme(theme);
-  const muted = light ? "text-slate-600" : "text-white/80";
-
+export function Hero({ verdict }: { verdict: Verdict }) {
   return (
-    <section class="text-center pt-1 pb-1">
-      <div class="text-6xl sm:text-7xl leading-none mb-1" aria-hidden="true">
-        {emoji}
+    <section class="flex flex-col items-center pt-6 pb-4 text-center">
+      <div class="text-7xl leading-none drop-shadow-lg" aria-hidden="true">
+        {verdict.emoji}
       </div>
-      <div class="text-6xl sm:text-7xl font-extralight tracking-tight">
-        {temperature}°
+      <div class="mt-2 text-7xl font-light tracking-tight">
+        {Math.round(verdict.temperature)}°
       </div>
-      <p class={`mt-1 text-sm sm:text-base ${muted}`}>
-        Odczuwalna {feelsLike}° · Wiatr {windKmh} km/h
-      </p>
-    </section>
-  );
-}
-
-export function WaitingHero({ theme }: { theme: WeatherTheme }) {
-  const light = isLightTheme(theme);
-
-  return (
-    <section class={`${cardClass(light)} p-6 text-center`}>
-      <div class="text-5xl mb-3" aria-hidden="true">⏳</div>
-      <h2 class="text-xl font-medium mb-2">Czekam na pierwszą prognozę</h2>
-      <p class={light ? "text-slate-600" : "text-white/80"}>
-        Pojawi się w ciągu godziny po uruchomieniu automatyzacji.
-      </p>
+      <div class="mt-2 text-sm text-white/80">
+        Odczuwalna {Math.round(verdict.feelsLike)}° · Wiatr{" "}
+        {Math.round(verdict.windKmh)} km/h
+      </div>
     </section>
   );
 }

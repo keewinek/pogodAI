@@ -1,15 +1,14 @@
 @import "tailwindcss";
 
 html {
-  font-family:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
+/* Pasek godzinowy: ukryj scrollbar, zostaw scroll */
+.no-scrollbar {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-
-.scrollbar-hide::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }

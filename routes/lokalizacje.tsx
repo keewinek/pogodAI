@@ -1,38 +1,32 @@
-import { Head } from "fresh/runtime";
-import { page } from "fresh";
 import { define } from "../utils.ts";
 import { listLocations } from "../lib/db.ts";
-import { WeatherLayout } from "../components/WeatherLayout.tsx";
+import { DEFAULT_THEME } from "../lib/theme.ts";
 import LocationEditor from "../islands/LocationEditor.tsx";
 
 export const handler = define.handlers({
-  async GET() {
+  async GET(ctx) {
+    ctx.state.theme = DEFAULT_THEME;
+    ctx.state.title = "PogodAI — lokalizacje";
     const locations = await listLocations();
-    return page({ locations });
+    return { data: { locations } };
   },
 });
 
-export default define.page<typeof handler>(({ data }) => {
-  const { locations } = data;
-
+export default define.page<typeof handler>(function Lokalizacje({ data }) {
   return (
-    <WeatherLayout theme="night">
-      <Head>
-        <title>Lokalizacje — PogodAI</title>
-      </Head>
-
+    <main class="max-w-md mx-auto px-4 py-8 flex flex-col gap-6">
       <header class="flex items-center gap-3">
         <a
           href="/"
-          class="min-h-11 min-w-11 inline-flex items-center justify-center rounded-2xl bg-white/10 text-lg"
-          aria-label="Wróć"
+          aria-label="Wróć do wyboru lokalizacji"
+          class="rounded-full bg-white/15 px-3.5 py-2 hover:bg-white/25 transition min-h-11 flex items-center"
         >
           ←
         </a>
-        <h1 class="text-2xl font-medium">Lokalizacje</h1>
+        <h1 class="text-2xl font-bold">Lokalizacje</h1>
       </header>
 
-      <LocationEditor initialLocations={locations} />
-    </WeatherLayout>
+      <LocationEditor initialLocations={data.locations} />
+    </main>
   );
 });

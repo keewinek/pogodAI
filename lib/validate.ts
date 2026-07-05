@@ -1,176 +1,227 @@
-import type { DayForecast, Forecast, HourForecast, Location } from "./types.ts";
+import type { DayForecast, Forecast, HourForecast, Verdict } from "./types.ts";
 
-const ALLOWED_EMOJI = new Set([
-  "☀️",
-  "🌤️",
-  "⛅",
-  "☁️",
-  "🌧️",
-  "⛈️",
-  "🌨️",
-  "❄️",
-  "🌫️",
-  "💨",
-]);
+type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
-const HOUR_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:00$/;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
-function isString(value: unknown): value is string {
-  return typeof value === "string";
+function numberIn(v: unknown, min: number, max: number): v is number {
+  return typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
 }
 
-function isNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
+const TEMP = [-60, 60] as const;
+const PRECIP = [0, 100] as const;
+const WIND = [0, 300] as const;
 
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) &&
-    value.every((item) => typeof item === "string");
-}
-
-function inRange(value: number, min: number, max: number): boolean {
-  return value >= min && value <= max;
-}
-
-function validateHour(hour: unknown): hour is HourForecast {
-  if (!isRecord(hour)) return false;
-  return (
-    isString(hour.time) &&
-    HOUR_TIME_RE.test(hour.time) &&
-    isString(hour.emoji) &&
-    ALLOWED_EMOJI.has(hour.emoji) &&
-    isNumber(hour.temperature) &&
-    inRange(hour.temperature, -60, 60) &&
-    isNumber(hour.precipitationChance) &&
-    inRange(hour.precipitationChance, 0, 100) &&
-    isNumber(hour.windKmh) &&
-    inRange(hour.windKmh, 0, 300)
-  );
-}
-
-function validateDay(day: unknown): day is DayForecast {
-  if (!isRecord(day)) return false;
+function validateHour(v: unknown, path: string): Result<HourForecast> {
+  if (!isRecord(v)) return { ok: false, error: `${path}: oczekiwano obiektu` };
   if (
-    !isString(day.date) ||
-    !DATE_RE.test(day.date) ||
-    !isString(day.summary) ||
-    day.summary.length === 0 ||
-    day.summary.length > 300 ||
-    !isString(day.emoji) ||
-    !ALLOWED_EMOJI.has(day.emoji) ||
-    !isNumber(day.tempMin) ||
-    !inRange(day.tempMin, -60, 60) ||
-    !isNumber(day.tempMax) ||
-    !inRange(day.tempMax, -60, 60) ||
-    !isNumber(day.precipitationChance) ||
-    !inRange(day.precipitationChance, 0, 100) ||
-    !isNumber(day.windKmh) ||
-    !inRange(day.windKmh, 0, 300) ||
-    !Array.isArray(day.hours) ||
-    day.hours.length < 1 ||
-    day.hours.length > 24
+    typeof v.time !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:00$/.test(v.time)
   ) {
-    return false;
-  }
-  return day.hours.every(validateHour);
-}
-
-export function validateForecastBody(body: unknown): body is Forecast {
-  if (!isRecord(body)) return false;
-  if (
-    !isString(body.locationId) ||
-    body.locationId.length === 0 ||
-    !isString(body.generatedAt) ||
-    !isStringArray(body.sources) ||
-    body.sources.length === 0 ||
-    !isRecord(body.verdict)
-  ) {
-    return false;
-  }
-
-  const { verdict } = body;
-  if (
-    !isString(verdict.text) ||
-    verdict.text.length === 0 ||
-    verdict.text.length > 300 ||
-    !isString(verdict.emoji) ||
-    !ALLOWED_EMOJI.has(verdict.emoji) ||
-    !isNumber(verdict.temperature) ||
-    !inRange(verdict.temperature, -60, 60) ||
-    !isNumber(verdict.feelsLike) ||
-    !inRange(verdict.feelsLike, -60, 60) ||
-    !isNumber(verdict.precipitationChance) ||
-    !inRange(verdict.precipitationChance, 0, 100) ||
-    !isNumber(verdict.windKmh) ||
-    !inRange(verdict.windKmh, 0, 300) ||
-    !Array.isArray(body.days) ||
-    body.days.length < 1 ||
-    body.days.length > 8
-  ) {
-    return false;
-  }
-
-  return body.days.every(validateDay);
-}
-
-export function validateLocationInput(
-  body: unknown,
-): { ok: true; name: string; lat: number; lon: number } | {
-  ok: false;
-  error: string;
-} {
-  if (!isRecord(body)) {
-    return { ok: false, error: "Nieprawidłowe dane wejściowe" };
-  }
-
-  if (!isString(body.name) || body.name.trim().length === 0) {
-    return { ok: false, error: "Nazwa lokalizacji jest wymagana" };
-  }
-
-  const name = body.name.trim();
-  if (name.length > 60) {
     return {
       ok: false,
-      error: "Nazwa lokalizacji może mieć maksymalnie 60 znaków",
+      error: `${path}.time: wymagany format YYYY-MM-DDTHH:00`,
     };
   }
-
-  if (!isNumber(body.lat) || !inRange(body.lat, -90, 90)) {
+  if (
+    typeof v.emoji !== "string" || v.emoji.length === 0 || v.emoji.length > 8
+  ) {
+    return { ok: false, error: `${path}.emoji: wymagane emoji` };
+  }
+  if (!numberIn(v.temperature, ...TEMP)) {
     return {
       ok: false,
-      error: "Szerokość geograficzna musi być w zakresie -90 do 90",
+      error: `${path}.temperature: liczba w zakresie -60..60`,
     };
   }
-
-  if (!isNumber(body.lon) || !inRange(body.lon, -180, 180)) {
+  if (!numberIn(v.precipitationChance, ...PRECIP)) {
     return {
       ok: false,
-      error: "Długość geograficzna musi być w zakresie -180 do 180",
+      error: `${path}.precipitationChance: liczba w zakresie 0..100`,
     };
   }
-
-  return { ok: true, name, lat: body.lat, lon: body.lon };
+  if (!numberIn(v.windKmh, ...WIND)) {
+    return { ok: false, error: `${path}.windKmh: liczba w zakresie 0..300` };
+  }
+  return {
+    ok: true,
+    value: {
+      time: v.time,
+      emoji: v.emoji,
+      temperature: v.temperature,
+      precipitationChance: v.precipitationChance,
+      windKmh: v.windKmh,
+    },
+  };
 }
 
-export function validateForecastSize(
-  body: Forecast,
-  maxBytes = 60 * 1024,
-): boolean {
-  return new TextEncoder().encode(JSON.stringify(body)).length <= maxBytes;
+function validateDay(v: unknown, path: string): Result<DayForecast> {
+  if (!isRecord(v)) return { ok: false, error: `${path}: oczekiwano obiektu` };
+  if (typeof v.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v.date)) {
+    return { ok: false, error: `${path}.date: wymagany format YYYY-MM-DD` };
+  }
+  if (
+    typeof v.summary !== "string" || v.summary.length === 0 ||
+    v.summary.length > 300
+  ) {
+    return {
+      ok: false,
+      error: `${path}.summary: niepusty tekst do 300 znaków`,
+    };
+  }
+  if (
+    typeof v.emoji !== "string" || v.emoji.length === 0 || v.emoji.length > 8
+  ) {
+    return { ok: false, error: `${path}.emoji: wymagane emoji` };
+  }
+  if (!numberIn(v.tempMin, ...TEMP)) {
+    return { ok: false, error: `${path}.tempMin: liczba w zakresie -60..60` };
+  }
+  if (!numberIn(v.tempMax, ...TEMP)) {
+    return { ok: false, error: `${path}.tempMax: liczba w zakresie -60..60` };
+  }
+  if (!numberIn(v.precipitationChance, ...PRECIP)) {
+    return {
+      ok: false,
+      error: `${path}.precipitationChance: liczba w zakresie 0..100`,
+    };
+  }
+  if (!numberIn(v.windKmh, ...WIND)) {
+    return { ok: false, error: `${path}.windKmh: liczba w zakresie 0..300` };
+  }
+  if (!Array.isArray(v.hours) || v.hours.length < 1 || v.hours.length > 24) {
+    return { ok: false, error: `${path}.hours: tablica 1–24 wpisów` };
+  }
+  const hours: HourForecast[] = [];
+  for (let i = 0; i < v.hours.length; i++) {
+    const h = validateHour(v.hours[i], `${path}.hours[${i}]`);
+    if (!h.ok) return h;
+    hours.push(h.value);
+  }
+  return {
+    ok: true,
+    value: {
+      date: v.date,
+      summary: v.summary,
+      emoji: v.emoji,
+      tempMin: v.tempMin,
+      tempMax: v.tempMax,
+      precipitationChance: v.precipitationChance,
+      windKmh: v.windKmh,
+      hours,
+    },
+  };
 }
 
-export function isLocation(value: unknown): value is Location {
-  if (!isRecord(value)) return false;
-  return (
-    isString(value.id) &&
-    isString(value.name) &&
-    isNumber(value.lat) &&
-    isNumber(value.lon) &&
-    isString(value.createdAt)
-  );
+function validateVerdict(v: unknown): Result<Verdict> {
+  if (!isRecord(v)) return { ok: false, error: "verdict: oczekiwano obiektu" };
+  if (
+    typeof v.text !== "string" || v.text.length === 0 || v.text.length > 300
+  ) {
+    return { ok: false, error: "verdict.text: niepusty tekst do 300 znaków" };
+  }
+  if (
+    typeof v.emoji !== "string" || v.emoji.length === 0 || v.emoji.length > 8
+  ) {
+    return { ok: false, error: "verdict.emoji: wymagane emoji" };
+  }
+  if (!numberIn(v.temperature, ...TEMP)) {
+    return {
+      ok: false,
+      error: "verdict.temperature: liczba w zakresie -60..60",
+    };
+  }
+  if (!numberIn(v.feelsLike, ...TEMP)) {
+    return { ok: false, error: "verdict.feelsLike: liczba w zakresie -60..60" };
+  }
+  if (!numberIn(v.precipitationChance, ...PRECIP)) {
+    return {
+      ok: false,
+      error: "verdict.precipitationChance: liczba w zakresie 0..100",
+    };
+  }
+  if (!numberIn(v.windKmh, ...WIND)) {
+    return { ok: false, error: "verdict.windKmh: liczba w zakresie 0..300" };
+  }
+  return {
+    ok: true,
+    value: {
+      text: v.text,
+      emoji: v.emoji,
+      temperature: v.temperature,
+      feelsLike: v.feelsLike,
+      precipitationChance: v.precipitationChance,
+      windKmh: v.windKmh,
+    },
+  };
+}
+
+export function validateForecast(v: unknown): Result<Forecast> {
+  if (!isRecord(v)) return { ok: false, error: "Oczekiwano obiektu JSON." };
+  if (typeof v.locationId !== "string" || v.locationId.length === 0) {
+    return { ok: false, error: "locationId: wymagany niepusty string" };
+  }
+  if (
+    typeof v.generatedAt !== "string" || Number.isNaN(Date.parse(v.generatedAt))
+  ) {
+    return { ok: false, error: "generatedAt: wymagana data ISO 8601" };
+  }
+  if (
+    !Array.isArray(v.sources) || v.sources.length === 0 ||
+    !v.sources.every((s) =>
+      typeof s === "string" && s.length > 0 && s.length <= 100
+    )
+  ) {
+    return { ok: false, error: "sources: niepusta tablica stringów" };
+  }
+  const verdict = validateVerdict(v.verdict);
+  if (!verdict.ok) return verdict;
+  if (!Array.isArray(v.days) || v.days.length < 1 || v.days.length > 8) {
+    return { ok: false, error: "days: tablica 1–8 dni" };
+  }
+  const days: DayForecast[] = [];
+  for (let i = 0; i < v.days.length; i++) {
+    const d = validateDay(v.days[i], `days[${i}]`);
+    if (!d.ok) return d;
+    days.push(d.value);
+  }
+  return {
+    ok: true,
+    value: {
+      locationId: v.locationId,
+      generatedAt: v.generatedAt,
+      sources: v.sources as string[],
+      verdict: verdict.value,
+      days,
+    },
+  };
+}
+
+export function validateNewLocation(
+  v: unknown,
+): Result<{ name: string; lat: number; lon: number }> {
+  if (!isRecord(v)) return { ok: false, error: "Oczekiwano obiektu JSON." };
+  if (
+    typeof v.name !== "string" || v.name.trim().length === 0 ||
+    v.name.trim().length > 60
+  ) {
+    return {
+      ok: false,
+      error: "Nazwa musi być niepusta i mieć maks. 60 znaków.",
+    };
+  }
+  if (!numberIn(v.lat, -90, 90)) {
+    return {
+      ok: false,
+      error: "Szerokość geograficzna (lat) musi być liczbą w zakresie -90..90.",
+    };
+  }
+  if (!numberIn(v.lon, -180, 180)) {
+    return {
+      ok: false,
+      error: "Długość geograficzna (lon) musi być liczbą w zakresie -180..180.",
+    };
+  }
+  return { ok: true, value: { name: v.name.trim(), lat: v.lat, lon: v.lon } };
 }

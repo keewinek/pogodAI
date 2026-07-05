@@ -1,52 +1,73 @@
-import { getWarsawHour } from "./time.ts";
-
-export const STORAGE_KEY = "pogodai_location";
-
-export type WeatherTheme =
-  | "sunny"
-  | "cloudy"
-  | "rainy"
-  | "snowy"
-  | "storm"
-  | "night";
-
-const SUNNY = new Set(["☀️", "🌤️"]);
-const CLOUDY = new Set(["⛅", "☁️", "🌫️"]);
-const RAINY = new Set(["🌧️", "💨"]);
-const STORM = new Set(["⛈️", "🌩️"]);
-const SNOWY = new Set(["🌨️", "❄️"]);
-
-export const THEME_GRADIENTS: Record<WeatherTheme, string> = {
-  sunny: "from-sky-400 to-blue-600",
-  cloudy: "from-slate-400 to-slate-700",
-  rainy: "from-slate-600 to-indigo-900",
-  snowy: "from-slate-300 to-blue-800",
-  storm: "from-slate-800 to-purple-950",
-  night: "from-slate-900 to-indigo-950",
-};
-
-export const THEME_COLORS: Record<WeatherTheme, string> = {
-  sunny: "#38bdf8",
-  cloudy: "#64748b",
-  rainy: "#312e81",
-  snowy: "#93c5fd",
-  storm: "#3b0764",
-  night: "#1e1b4b",
-};
-
-export function resolveTheme(
-  emoji: string,
-  hour = getWarsawHour(),
-): WeatherTheme {
-  if (hour >= 22 || hour < 6) return "night";
-  if (SUNNY.has(emoji)) return "sunny";
-  if (SNOWY.has(emoji)) return "snowy";
-  if (STORM.has(emoji)) return "storm";
-  if (RAINY.has(emoji)) return "rainy";
-  if (CLOUDY.has(emoji)) return "cloudy";
-  return "cloudy";
+export interface Theme {
+  name: string;
+  gradient: string; // klasy Tailwind na tło
+  accent: string; // klasa koloru akcentu
+  themeColor: string; // meta theme-color
 }
 
-export function isLightTheme(theme: WeatherTheme): boolean {
-  return theme === "snowy";
+const THEMES: Record<string, Theme> = {
+  sunny: {
+    name: "sunny",
+    gradient: "bg-gradient-to-b from-sky-400 to-blue-600",
+    accent: "text-amber-300",
+    themeColor: "#38bdf8",
+  },
+  cloudy: {
+    name: "cloudy",
+    gradient: "bg-gradient-to-b from-slate-400 to-slate-700",
+    accent: "text-sky-300",
+    themeColor: "#94a3b8",
+  },
+  rainy: {
+    name: "rainy",
+    gradient: "bg-gradient-to-b from-slate-600 to-indigo-900",
+    accent: "text-cyan-300",
+    themeColor: "#475569",
+  },
+  snowy: {
+    name: "snowy",
+    gradient: "bg-gradient-to-b from-slate-500 to-blue-900",
+    accent: "text-white",
+    themeColor: "#64748b",
+  },
+  storm: {
+    name: "storm",
+    gradient: "bg-gradient-to-b from-slate-800 to-purple-950",
+    accent: "text-yellow-300",
+    themeColor: "#1e293b",
+  },
+  night: {
+    name: "night",
+    gradient: "bg-gradient-to-b from-slate-900 to-indigo-950",
+    accent: "text-indigo-300",
+    themeColor: "#0f172a",
+  },
+};
+
+export const DEFAULT_THEME = THEMES.night;
+
+/** Motyw na podstawie emoji werdyktu i godziny lokalnej (Europe/Warsaw). */
+export function themeFor(emoji: string | undefined, hour: number): Theme {
+  const isNight = hour >= 22 || hour < 6;
+  if (isNight) return THEMES.night;
+  if (!emoji) return THEMES.cloudy;
+  if (emoji.includes("⛈") || emoji.includes("🌩")) return THEMES.storm;
+  if (emoji.includes("❄") || emoji.includes("🌨")) return THEMES.snowy;
+  if (emoji.includes("🌧") || emoji.includes("☔") || emoji.includes("🌦")) {
+    return THEMES.rainy;
+  }
+  if (emoji.includes("☀") || emoji.includes("🌤")) return THEMES.sunny;
+  return THEMES.cloudy;
+}
+
+/** Bieżąca godzina w strefie Europe/Warsaw. */
+export function warsawHour(date = new Date()): number {
+  return parseInt(
+    new Intl.DateTimeFormat("pl-PL", {
+      timeZone: "Europe/Warsaw",
+      hour: "2-digit",
+      hour12: false,
+    }).format(date),
+    10,
+  );
 }

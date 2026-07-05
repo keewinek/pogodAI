@@ -1,42 +1,31 @@
 import type { HourForecast } from "../lib/types.ts";
-import { formatHour } from "../lib/time.ts";
-import { isLightTheme, type WeatherTheme } from "../lib/theme.ts";
+import { hourLabel } from "../lib/forecast-utils.ts";
 
-interface HourlyStripProps {
-  hours: HourForecast[];
-  theme: WeatherTheme;
-  id?: string;
-}
-
-export function HourlyStrip({ hours, theme, id }: HourlyStripProps) {
-  if (hours.length === 0) return null;
-
-  const light = isLightTheme(theme);
-  const muted = light ? "text-slate-500" : "text-white/70";
-  const precip = light ? "text-blue-600" : "text-cyan-200";
-
+export function HourlyStrip({ hours }: { hours: HourForecast[] }) {
+  if (hours.length === 0) {
+    return <p class="text-sm text-white/60 px-1">Brak danych godzinowych.</p>;
+  }
   return (
-    <div
-      id={id}
-      class="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 scrollbar-hide"
-    >
-      {hours.map((hour) => (
-        <div
-          key={hour.time}
-          class={`snap-start shrink-0 w-16 text-center rounded-2xl py-3 ${
-            light ? "bg-white/60" : "bg-white/10"
-          }`}
-        >
-          <div class={`text-sm font-medium ${muted}`}>
-            {formatHour(hour.time)}
+    <div class="overflow-x-auto snap-x no-scrollbar -mx-1 px-1">
+      <div class="flex gap-2 w-max">
+        {hours.map((h) => (
+          <div
+            key={h.time}
+            class="snap-start flex flex-col items-center gap-1 rounded-2xl bg-white/10 px-3 py-3 min-w-16"
+          >
+            <span class="text-xs text-white/70">{hourLabel(h.time)}</span>
+            <span class="text-2xl leading-none" aria-hidden="true">
+              {h.emoji}
+            </span>
+            <span class="text-sm font-semibold">
+              {Math.round(h.temperature)}°
+            </span>
+            <span class="text-[11px] text-cyan-200">
+              ☔{Math.round(h.precipitationChance)}%
+            </span>
           </div>
-          <div class="text-2xl my-1" aria-hidden="true">{hour.emoji}</div>
-          <div class="text-base font-medium">{hour.temperature}°</div>
-          <div class={`text-xs mt-1 ${precip}`}>
-            ☔{hour.precipitationChance}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

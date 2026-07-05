@@ -1,11 +1,10 @@
-import { Head } from "fresh/runtime";
-import { HttpError, page } from "fresh";
+import { HttpError } from "fresh";
 import { define } from "../utils.ts";
-import { getForecast, listLocations } from "../lib/db.ts";
-import { getNearestHours } from "../lib/forecast-utils.ts";
-import { isLightTheme, resolveTheme, THEME_COLORS } from "../lib/theme.ts";
-import { WeatherLayout } from "../components/WeatherLayout.tsx";
-import { Hero, WaitingHero } from "../components/Hero.tsx";
+import { getForecast, getLocation, listLocations } from "../lib/db.ts";
+import { DEFAULT_THEME, themeFor, warsawHour } from "../lib/theme.ts";
+import { dayLabel, warsawToday } from "../lib/time.ts";
+import { upcomingHours } from "../lib/forecast-utils.ts";
+import { Hero } from "../components/Hero.tsx";
 import { VerdictCard } from "../components/VerdictCard.tsx";
 import { HourlyStrip } from "../components/HourlyStrip.tsx";
 import { FreshnessFooter } from "../components/FreshnessFooter.tsx";
@@ -14,89 +13,74 @@ import DailyAccordion from "../islands/DailyAccordion.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
-    const locationId = ctx.params.location;
-    const locations = await listLocations();
-    const location = locations.find((item) => item.id === locationId);
+    const location = await getLocation(ctx.params.location);
+    if (!location) throw new HttpError(404);
 
-    if (!location) {
-      throw new HttpError(404);
-    }
+    const [locations, forecast] = await Promise.all([
+      listLocations(),
+      getForecast(location.id),
+    ]);
 
-    const forecast = await getForecast(locationId);
-    const theme = resolveTheme(forecast?.verdict.emoji ?? "⛅");
+    ctx.state.theme = forecast
+      ? themeFor(forecast.verdict.emoji, warsawHour())
+      : DEFAULT_THEME;
+    ctx.state.title = `PogodAI — ${location.name}`;
 
-    return page({ location, forecast, locations, theme });
+    return { data: { location, locations, forecast } };
   },
 });
 
-export default define.page<typeof handler>(({ data }) => {
-  const { location, forecast, locations, theme } = data;
-  const nearestHours = forecast ? getNearestHours(forecast.days) : [];
-  const sectionLabel = isLightTheme(theme) ? "text-slate-600" : "text-white/80";
+export default define.page<typeof handler>(function LocationPage({ data }) {
+  const { location, locations, forecast } = data;
+  const today = warsawToday();
 
   return (
-    <WeatherLayout theme={theme} compact>
-      <Head>
-        <title>{location.name} — PogodAI</title>
-        <meta name="theme-color" content={THEME_COLORS[theme]} />
-        <meta
-          name="description"
-          content={`${
-            forecast?.verdict.text ?? "Prognoza pogody"
-          } — ${location.name}`}
-        />
-      </Head>
+    <main class="max-w-md mx-auto px-4 py-6 flex flex-col gap-5">
+      <LocationPicker locations={locations} currentId={location.id} />
 
-      <div class="flex justify-center">
-        <LocationPicker
-          locations={locations}
-          currentId={location.id}
-          currentName={location.name}
-          theme={theme}
-        />
-      </div>
-
-      {forecast
+      {!forecast
         ? (
+          <section class="rounded-3xl bg-white/15 backdrop-blur border border-white/20 p-8 text-center mt-8">
+            <div class="text-5xl" aria-hidden="true">⏳</div>
+            <p class="mt-4 text-lg font-medium">
+              Czekam na pierwszą prognozę
+            </p>
+            <p class="mt-2 text-sm text-white/70">
+              Nie mam jeszcze prognozy dla tej lokalizacji. Pojawi się w ciągu
+              godziny. Wpadnij później!
+            </p>
+          </section>
+        )
+        : (
           <>
-            <Hero
-              emoji={forecast.verdict.emoji}
-              temperature={forecast.verdict.temperature}
-              feelsLike={forecast.verdict.feelsLike}
-              windKmh={forecast.verdict.windKmh}
-              theme={theme}
-            />
+            <Hero verdict={forecast.verdict} />
+            <VerdictCard verdict={forecast.verdict} />
 
-            <VerdictCard
-              text={forecast.verdict.text}
-              precipitationChance={forecast.verdict.precipitationChance}
-              theme={theme}
-            />
+            <section>
+              <h2 class="text-sm font-semibold text-white/70 mb-2 px-1">
+                Najbliższe godziny
+              </h2>
+              <HourlyStrip
+                hours={upcomingHours(forecast.days, today, warsawHour())}
+              />
+            </section>
 
-            {nearestHours.length > 0 && (
-              <section class="space-y-3">
-                <h2 class={`text-sm font-medium ${sectionLabel}`}>
-                  Najbliższe godziny
-                </h2>
-                <HourlyStrip hours={nearestHours} theme={theme} />
-              </section>
-            )}
-
-            <section class="space-y-3">
-              <h2 class={`text-sm font-medium ${sectionLabel}`}>
+            <section>
+              <h2 class="text-sm font-semibold text-white/70 mb-2 px-1">
                 Prognoza na kolejne dni
               </h2>
-              <DailyAccordion days={forecast.days} theme={theme} />
+              <DailyAccordion
+                days={forecast.days}
+                labels={forecast.days.map((d) => dayLabel(d.date, today))}
+              />
             </section>
 
             <FreshnessFooter
               generatedAt={forecast.generatedAt}
               sources={forecast.sources}
-              theme={theme}
             />
           </>
-        )
-        : <WaitingHero theme={theme} />}
-    </WeatherLayout>
+        )}
+    </main>
   );
 });

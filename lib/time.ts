@@ -1,86 +1,47 @@
-export function getCurrentWarsawHourKey(date = new Date()): string {
-  const datePart = new Intl.DateTimeFormat("en-CA", {
+const DAY_NAMES = ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."];
+
+/** "2026-07-05" → data w południe UTC (stabilny dzień tygodnia niezależnie od strefy). */
+function parseDate(date: string): Date {
+  return new Date(`${date}T12:00:00Z`);
+}
+
+/** Nazwa dnia tygodnia po polsku; "Dziś"/"Jutro" dla dwóch pierwszych dat. */
+export function dayLabel(date: string, todayDate: string): string {
+  if (date === todayDate) return "Dziś";
+  const d = parseDate(date);
+  const today = parseDate(todayDate);
+  const diffDays = Math.round((d.getTime() - today.getTime()) / 86_400_000);
+  if (diffDays === 1) return "Jutro";
+  return DAY_NAMES[d.getUTCDay()];
+}
+
+/** Dzisiejsza data "YYYY-MM-DD" w Europe/Warsaw. */
+export function warsawToday(date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Warsaw",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
-
-  const hour = getWarsawHour(date);
-  return `${datePart}T${String(hour).padStart(2, "0")}:00`;
 }
 
-export function getWarsawHour(date = new Date()): number {
-  return Number(
-    new Intl.DateTimeFormat("pl-PL", {
-      timeZone: "Europe/Warsaw",
-      hour: "numeric",
-      hour12: false,
-    }).format(date),
-  );
-}
-
-export function formatRelativeTime(iso: string, now = Date.now()): string {
-  const then = new Date(iso).getTime();
-  const diffMin = Math.floor((now - then) / 60_000);
-
+/** Relatywny czas po polsku, np. "12 min temu". */
+export function relativeTime(iso: string, now = new Date()): string {
+  const then = new Date(iso);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMin = Math.round(diffMs / 60_000);
   if (diffMin < 1) return "przed chwilą";
   if (diffMin < 60) return `${diffMin} min temu`;
-
-  const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `${diffHours} h temu`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays} d temu`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) {
+    const restMin = diffMin % 60;
+    return restMin > 0 ? `${diffH} h ${restMin} min temu` : `${diffH} h temu`;
+  }
+  const diffD = Math.floor(diffH / 24);
+  return diffD === 1 ? "wczoraj" : `${diffD} dni temu`;
 }
 
-export type FreshnessLevel = "fresh" | "stale" | "old";
-
-export function getFreshnessLevel(
-  iso: string,
-  now = Date.now(),
-): FreshnessLevel {
-  const ageMin = Math.floor((now - new Date(iso).getTime()) / 60_000);
-  if (ageMin < 90) return "fresh";
-  if (ageMin < 180) return "stale";
-  return "old";
-}
-
-export function formatDayLabel(date: string, index: number): string {
-  if (index === 0) return "Dziś";
-  if (index === 1) return "Jutro";
-
-  const label = new Intl.DateTimeFormat("pl-PL", {
-    timeZone: "Europe/Warsaw",
-    weekday: "short",
-  }).format(new Date(`${date}T12:00:00`));
-
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
-export function formatHour(time: string): string {
-  return time.slice(11, 13);
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  "open-meteo": "Open-Meteo",
-  "yr.no": "YR.no",
-  google: "Google",
-  tvn: "TVN",
-  interia: "Interia",
-  onet: "Onet",
-  imgw: "IMGW",
-  icm: "ICM",
-  accuweather: "AccuWeather",
-};
-
-export function formatSources(sources: string[]): string {
-  return sources
-    .map((source) => {
-      const key =
-        source.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "")
-          .split(".")[0];
-      return SOURCE_LABELS[key] ?? SOURCE_LABELS[source] ?? key.toUpperCase();
-    })
-    .join(" · ");
+/** Wiek danych w minutach. */
+export function ageMinutes(iso: string, now = new Date()): number {
+  return Math.round((now.getTime() - new Date(iso).getTime()) / 60_000);
 }

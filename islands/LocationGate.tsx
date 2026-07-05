@@ -1,69 +1,56 @@
 import { useEffect } from "preact/hooks";
-import { STORAGE_KEY } from "../lib/theme.ts";
+import type { Location } from "../lib/types.ts";
 
-interface LocationItem {
-  id: string;
-  name: string;
-}
+const STORAGE_KEY = "pogodai_location";
 
-interface LocationGateProps {
-  locations: LocationItem[];
-  showPicker?: boolean;
-  clearInvalid?: boolean;
-}
-
-export default function LocationGate(
-  { locations, showPicker = false, clearInvalid = false }: LocationGateProps,
-) {
+/**
+ * Panel wyboru lokalizacji na "/".
+ * Przy montowaniu: jeśli w localStorage jest zapisana lokalizacja z listy,
+ * przekierowuje natychmiast (location.replace — bez wpisu w historii).
+ * Nieaktualny zapis (usunięta lokalizacja) jest czyszczony.
+ */
+export default function LocationGate({ locations }: { locations: Location[] }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
-
-    const exists = locations.some((location) => location.id === saved);
-    if (exists && !clearInvalid) {
-      globalThis.location.replace(`/${saved}`);
-      return;
-    }
-
-    if (!exists) {
+    if (locations.some((l) => l.id === saved)) {
+      location.replace("/" + saved);
+    } else {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, [locations, showPicker, clearInvalid]);
+  }, []);
 
-  if (!showPicker) return null;
-
-  function selectLocation(id: string) {
+  const choose = (id: string) => {
     localStorage.setItem(STORAGE_KEY, id);
-    globalThis.location.href = `/${id}`;
-  }
+    location.href = "/" + id;
+  };
 
   if (locations.length === 0) {
     return (
-      <div class="text-center space-y-4 py-8">
-        <p class="text-white/80">Brak lokalizacji w bazie.</p>
+      <div class="text-center">
+        <p class="text-white/80">Nie ma jeszcze żadnej lokalizacji.</p>
         <a
           href="/lokalizacje"
-          class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-white/20 px-6 py-3 font-medium"
+          class="mt-4 inline-block rounded-2xl bg-white/20 px-6 py-3 font-medium hover:bg-white/30 transition"
         >
-          Dodaj pierwszą lokalizację
+          + Dodaj pierwszą lokalizację
         </a>
       </div>
     );
   }
 
   return (
-    <ul class="space-y-3">
-      {locations.map((location) => (
-        <li key={location.id}>
-          <button
-            type="button"
-            onClick={() => selectLocation(location.id)}
-            class="w-full min-h-14 rounded-3xl bg-white/10 backdrop-blur px-5 py-4 text-left text-lg font-medium transition hover:bg-white/20 active:scale-[0.99]"
-          >
-            📍 {location.name}
-          </button>
-        </li>
+    <div class="flex flex-col gap-3">
+      {locations.map((l) => (
+        <button
+          key={l.id}
+          type="button"
+          onClick={() => choose(l.id)}
+          class="w-full rounded-3xl bg-white/15 backdrop-blur border border-white/20 px-5 py-4 text-left text-lg font-medium shadow hover:bg-white/25 transition min-h-11"
+        >
+          📍 {l.name}
+        </button>
       ))}
-    </ul>
+    </div>
   );
 }

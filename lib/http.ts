@@ -1,17 +1,17 @@
 export function json(
-  data: unknown,
+  body: unknown,
   status = 200,
-  extraHeaders?: HeadersInit,
+  headers: Record<string, string> = {},
 ): Response {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      ...extraHeaders,
+      ...headers,
     },
   });
 }
 
-export function jsonError(message: string, status: number): Response {
+export function errorJson(message: string, status: number): Response {
   return json({ error: message }, status);
 }

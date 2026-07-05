@@ -1,169 +1,178 @@
 import { useState } from "preact/hooks";
 import type { Location } from "../lib/types.ts";
 
-interface LocationEditorProps {
-  initialLocations: Location[];
-}
-
+/** Lista lokalizacji z usuwaniem + formularz dodawania. */
 export default function LocationEditor(
-  { initialLocations }: LocationEditorProps,
+  { initialLocations }: { initialLocations: Location[] },
 ) {
   const [locations, setLocations] = useState(initialLocations);
   const [name, setName] = useState("");
   const [lat, setLat] = useState("");
   const [lon, setLon] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<
+    { kind: "ok" | "error"; text: string } | null
+  >(null);
 
-  async function handleAdd(event: Event) {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-
+  const add = async (e: Event) => {
+    e.preventDefault();
+    setMessage(null);
+    const latNum = parseFloat(lat.replace(",", "."));
+    const lonNum = parseFloat(lon.replace(",", "."));
+    if (!name.trim()) {
+      setMessage({ kind: "error", text: "Podaj nazwę lokalizacji." });
+      return;
+    }
+    if (Number.isNaN(latNum) || Number.isNaN(lonNum)) {
+      setMessage({
+        kind: "error",
+        text: "Podaj poprawne współrzędne (liczby).",
+      });
+      return;
+    }
+    setBusy(true);
     try {
-      const response = await fetch("/api/locations", {
+      const res = await fetch("/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          lat: Number(lat),
-          lon: Number(lon),
-        }),
+        body: JSON.stringify({ name: name.trim(), lat: latNum, lon: lonNum }),
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error ?? "Nie udało się dodać lokalizacji");
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({
+          kind: "error",
+          text: data.error ?? "Nie udało się dodać lokalizacji.",
+        });
         return;
       }
-
-      setLocations((current) => [...current, data]);
+      setLocations([...locations, data]);
       setName("");
       setLat("");
       setLon("");
-      setMessage(
-        "✅ Dodano. Prognoza pojawi się po następnym cyklu automatyzacji (do 1h).",
-      );
-    } catch {
-      setError("Nie udało się połączyć z serwerem");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDelete(location: Location) {
-    if (!confirm(`Usunąć lokalizację ${location.name}?`)) return;
-
-    setError("");
-    setMessage("");
-    setLoading(true);
-
-    try {
-      const response = await fetch(`/api/locations/${location.id}`, {
-        method: "DELETE",
+      setMessage({
+        kind: "ok",
+        text:
+          "✅ Dodano. Prognoza pojawi się po następnym cyklu automatyzacji (do 1h).",
       });
+    } catch {
+      setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
+    } finally {
+      setBusy(false);
+    }
+  };
 
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.error ?? "Nie udało się usunąć lokalizacji");
+  const remove = async (loc: Location) => {
+    if (!confirm(`Usunąć lokalizację „${loc.name}"?`)) return;
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/locations/${loc.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        setMessage({
+          kind: "error",
+          text: data.error ?? "Nie udało się usunąć.",
+        });
         return;
       }
-
-      setLocations((current) =>
-        current.filter((item) => item.id !== location.id)
-      );
-      setMessage(`Usunięto lokalizację ${location.name}.`);
+      setLocations(locations.filter((l) => l.id !== loc.id));
+      if (localStorage.getItem("pogodai_location") === loc.id) {
+        localStorage.removeItem("pogodai_location");
+      }
     } catch {
-      setError("Nie udało się połączyć z serwerem");
-    } finally {
-      setLoading(false);
+      setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
     }
-  }
+  };
 
   return (
-    <div class="space-y-6">
-      <ul class="space-y-3">
-        {locations.map((location) => (
-          <li
-            key={location.id}
-            class="flex min-h-14 items-center justify-between rounded-3xl bg-white/10 px-4 py-3 backdrop-blur"
-          >
-            <span>📍 {location.name}</span>
-            <button
-              type="button"
-              aria-label={`Usuń ${location.name}`}
-              disabled={loading}
-              onClick={() => handleDelete(location)}
-              class="min-h-11 min-w-11 rounded-2xl text-lg hover:bg-white/10 disabled:opacity-50"
-            >
-              🗑
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div class="flex flex-col gap-6">
+      {locations.length === 0
+        ? (
+          <p class="text-white/70 text-center">
+            Brak lokalizacji — dodaj pierwszą poniżej.
+          </p>
+        )
+        : (
+          <ul class="rounded-3xl bg-white/10 backdrop-blur border border-white/15 overflow-hidden divide-y divide-white/10">
+            {locations.map((l) => (
+              <li key={l.id} class="flex items-center gap-3 px-4 py-3">
+                <span class="flex-1 font-medium">📍 {l.name}</span>
+                <span class="text-xs text-white/50">
+                  {l.lat.toFixed(2)}, {l.lon.toFixed(2)}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Usuń lokalizację ${l.name}`}
+                  onClick={() =>
+                    remove(l)}
+                  class="rounded-xl px-3 py-2 min-h-11 hover:bg-red-500/20 transition"
+                >
+                  🗑️
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
       <form
-        onSubmit={handleAdd}
-        class="space-y-4 rounded-3xl bg-white/10 p-5 backdrop-blur"
+        onSubmit={add}
+        class="rounded-3xl bg-white/10 backdrop-blur border border-white/15 p-5 flex flex-col gap-3"
       >
-        <h2 class="text-lg font-medium">Dodaj lokalizację</h2>
-
-        <label class="block space-y-1">
-          <span class="text-sm text-white/70">Nazwa</span>
+        <h2 class="font-semibold">Dodaj lokalizację</h2>
+        <label class="flex flex-col gap-1 text-sm">
+          <span class="text-white/70">Nazwa</span>
           <input
-            required
+            type="text"
             value={name}
-            onInput={(event) =>
-              setName((event.target as HTMLInputElement).value)}
-            class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white placeholder:text-white/40"
-            placeholder="np. Białołęka, Warszawa"
+            maxLength={60}
+            onInput={(e) => setName((e.target as HTMLInputElement).value)}
+            placeholder="np. Zakopane"
+            class="rounded-xl bg-white/10 border border-white/20 px-3 py-2.5 placeholder-white/40 focus:outline-none focus:border-white/50"
           />
         </label>
-
         <div class="grid grid-cols-2 gap-3">
-          <label class="block space-y-1">
-            <span class="text-sm text-white/70">Lat</span>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-white/70">Szerokość (lat)</span>
             <input
-              required
-              type="number"
-              step="any"
+              type="text"
+              inputmode="decimal"
               value={lat}
-              onInput={(event) =>
-                setLat((event.target as HTMLInputElement).value)}
-              class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white"
+              onInput={(e) => setLat((e.target as HTMLInputElement).value)}
+              placeholder="49.30"
+              class="rounded-xl bg-white/10 border border-white/20 px-3 py-2.5 placeholder-white/40 focus:outline-none focus:border-white/50"
             />
           </label>
-          <label class="block space-y-1">
-            <span class="text-sm text-white/70">Lon</span>
+          <label class="flex flex-col gap-1 text-sm">
+            <span class="text-white/70">Długość (lon)</span>
             <input
-              required
-              type="number"
-              step="any"
+              type="text"
+              inputmode="decimal"
               value={lon}
-              onInput={(event) =>
-                setLon((event.target as HTMLInputElement).value)}
-              class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white"
+              onInput={(e) => setLon((e.target as HTMLInputElement).value)}
+              placeholder="19.95"
+              class="rounded-xl bg-white/10 border border-white/20 px-3 py-2.5 placeholder-white/40 focus:outline-none focus:border-white/50"
             />
           </label>
         </div>
-
-        <p class="text-xs text-white/60">
-          Współrzędne znajdziesz w Google Maps (PPM → współrzędne).
+        <p class="text-xs text-white/50">
+          Współrzędne znajdziesz w Google Maps (PPM na mapie → współrzędne).
         </p>
-
         <button
           type="submit"
-          disabled={loading}
-          class="min-h-11 w-full rounded-2xl bg-white/20 px-4 py-3 font-medium hover:bg-white/30 disabled:opacity-50"
+          disabled={busy}
+          class="rounded-2xl bg-white/20 px-5 py-3 font-medium hover:bg-white/30 transition disabled:opacity-50 min-h-11"
         >
-          {loading ? "Zapisywanie…" : "+ Dodaj"}
+          {busy ? "Dodawanie…" : "+ Dodaj"}
         </button>
+        {message && (
+          <p
+            class={`text-sm ${
+              message.kind === "ok" ? "text-emerald-300" : "text-red-300"
+            }`}
+          >
+            {message.text}
+          </p>
+        )}
       </form>
-
-      {message && <p class="text-sm text-emerald-200">{message}</p>}
-      {error && <p class="text-sm text-red-200">{error}</p>}
     </div>
   );
 }

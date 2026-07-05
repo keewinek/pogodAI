@@ -1,142 +1,69 @@
 /**
- * Generates a realistic 7-day sample forecast for warszawa-bialoleka.
- * Usage: deno run -A scripts/generate-sample-forecast.ts > Context/przyklad-forecast.json
+ * Generuje przykładowy obiekt Forecast (na dziś + 6 kolejnych dni)
+ * do testowania POST /api/forecast.
+ *
+ * Użycie: deno run -A scripts/generate-sample-forecast.ts [locationId]
  */
+import type { DayForecast, Forecast, HourForecast } from "../lib/types.ts";
 
-const locationId = "warszawa-bialoleka";
+const locationId = Deno.args[0] ?? "warszawa-bialoleka";
 
-const dayProfiles = [
-  {
-    emoji: "🌧️",
-    summary: "Deszczowo od południa — weź parasol.",
-    min: 9,
-    max: 15,
-    precip: 70,
-    wind: 18,
-  },
-  {
-    emoji: "⛅",
-    summary: "Przejaśnienia, lekki wiatr.",
-    min: 11,
-    max: 18,
-    precip: 20,
-    wind: 12,
-  },
-  {
-    emoji: "☀️",
-    summary: "Słonecznie przez cały dzień.",
-    min: 13,
-    max: 21,
-    precip: 5,
-    wind: 10,
-  },
-  {
-    emoji: "☀️",
-    summary: "Upalnie i sucho.",
-    min: 15,
-    max: 24,
-    precip: 0,
-    wind: 8,
-  },
-  {
-    emoji: "🌤️",
-    summary: "Większość dnia słonecznie.",
-    min: 14,
-    max: 22,
-    precip: 10,
-    wind: 11,
-  },
-  {
-    emoji: "⛅",
-    summary: "Zmienna chmurność, możliwe przelotne opady.",
-    min: 12,
-    max: 19,
-    precip: 30,
-    wind: 14,
-  },
-  {
-    emoji: "🌧️",
-    summary: "Deszcz od rana do popołudnia.",
-    min: 10,
-    max: 16,
-    precip: 65,
-    wind: 16,
-  },
-];
+const EMOJIS = ["☀️", "🌤️", "⛅", "☁️", "🌧️"];
 
 function warsawDate(offsetDays: number): string {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() + offsetDays);
+  const d = new Date(Date.now() + offsetDays * 86_400_000);
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Warsaw",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(date);
+  }).format(d);
 }
 
-function buildHours(
-  date: string,
-  index: number,
-  profile: typeof dayProfiles[0],
-) {
-  const step = index < 2 ? 1 : 3;
-  const hours: Array<{
-    time: string;
-    emoji: string;
-    temperature: number;
-    precipitationChance: number;
-    windKmh: number;
-  }> = [];
-
-  for (let h = 0; h < 24; h += step) {
-    const progress = h / 23;
-    const temp = Math.round(
-      profile.min + (profile.max - profile.min) * Math.sin(progress * Math.PI),
-    );
-    const precip = Math.max(
-      0,
-      Math.min(100, profile.precip + (h < 8 ? 10 : h > 18 ? -5 : 0)),
-    );
-    const emoji = precip > 50 ? "🌧️" : precip > 20 ? "⛅" : "☀️";
-
+function makeHours(date: string, stepH: number): HourForecast[] {
+  const hours: HourForecast[] = [];
+  for (let h = 0; h < 24; h += stepH) {
     hours.push({
       time: `${date}T${String(h).padStart(2, "0")}:00`,
-      emoji,
-      temperature: temp,
-      precipitationChance: precip,
-      windKmh: profile.wind,
+      emoji: EMOJIS[(h / stepH) % EMOJIS.length],
+      temperature: Math.round(12 + 8 * Math.sin(((h - 4) / 24) * Math.PI * 2)),
+      precipitationChance: (h * 7) % 100,
+      windKmh: 5 + (h % 20),
     });
   }
-
   return hours;
 }
 
-const forecast = {
+const days: DayForecast[] = [];
+for (let i = 0; i < 7; i++) {
+  const date = warsawDate(i);
+  days.push({
+    date,
+    summary: i === 0
+      ? "Przelotne opady po południu, wieczorem przejaśnienia."
+      : `Dzień ${i + 1}: zmienna pogoda, miejscami słońce.`,
+    emoji: EMOJIS[i % EMOJIS.length],
+    tempMin: 9 + i,
+    tempMax: 17 + i,
+    precipitationChance: (i * 13) % 100,
+    windKmh: 10 + i * 2,
+    hours: makeHours(date, i < 2 ? 1 : 3),
+  });
+}
+
+const forecast: Forecast = {
   locationId,
   generatedAt: new Date().toISOString(),
-  sources: ["open-meteo", "yr.no", "google", "tvn", "interia", "imgw"],
+  sources: ["open-meteo", "yr.no", "google", "tvn", "interia"],
   verdict: {
-    text: "Po południu rozpada się na dobre — weź parasol.",
+    text: "Chłodno i przelotnie deszczowo po południu — weź parasol.",
     emoji: "🌧️",
     temperature: 14,
     feelsLike: 12,
     precipitationChance: 70,
     windKmh: 18,
   },
-  days: dayProfiles.map((profile, index) => {
-    const date = warsawDate(index);
-    return {
-      date,
-      summary: profile.summary,
-      emoji: profile.emoji,
-      tempMin: profile.min,
-      tempMax: profile.max,
-      precipitationChance: profile.precip,
-      windKmh: profile.wind,
-      hours: buildHours(date, index, profile),
-    };
-  }),
+  days,
 };
 
 console.log(JSON.stringify(forecast, null, 2));

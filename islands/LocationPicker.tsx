@@ -1,102 +1,76 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { isLightTheme, STORAGE_KEY, type WeatherTheme } from "../lib/theme.ts";
+import type { Location } from "../lib/types.ts";
 
-interface LocationItem {
-  id: string;
-  name: string;
-}
+const STORAGE_KEY = "pogodai_location";
 
-interface LocationPickerProps {
-  locations: LocationItem[];
-  currentId: string;
-  currentName: string;
-  theme: WeatherTheme;
-}
-
+/** Pigułka z nazwą lokalizacji + dropdown wyboru na stronie prognozy. */
 export default function LocationPicker(
-  { locations, currentId, currentName, theme }: LocationPickerProps,
+  { locations, currentId }: { locations: Location[]; currentId: string },
 ) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const light = isLightTheme(theme);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = locations.find((l) => l.id === currentId);
+
+  // Zapamiętaj bieżącą lokalizację (np. wejście z bezpośredniego linku).
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, currentId);
+  }, [currentId]);
 
   useEffect(() => {
-    function onClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
       }
-    }
-
-    function onEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-
-    document.addEventListener("mousedown", onClickOutside);
-    document.addEventListener("keydown", onEscape);
-    return () => {
-      document.removeEventListener("mousedown", onClickOutside);
-      document.removeEventListener("keydown", onEscape);
     };
-  }, []);
+    addEventListener("keydown", onKey);
+    addEventListener("click", onClick);
+    return () => {
+      removeEventListener("keydown", onKey);
+      removeEventListener("click", onClick);
+    };
+  }, [open]);
 
-  function selectLocation(id: string) {
+  const choose = (id: string) => {
     localStorage.setItem(STORAGE_KEY, id);
-    globalThis.location.href = `/${id}`;
-  }
-
-  const triggerClass = light
-    ? "bg-white/80 text-slate-900 border border-white/60 shadow-sm"
-    : "bg-white/15 text-white border border-white/10";
+    location.href = "/" + id;
+  };
 
   return (
-    <div ref={containerRef} class="relative z-30">
+    <div class="relative flex justify-center" ref={ref}>
       <button
         type="button"
-        aria-label="Wybierz lokalizację"
+        aria-label="Zmień lokalizację"
         aria-expanded={open}
-        aria-haspopup="listbox"
-        onClick={() => setOpen((value) => !value)}
-        class={`mx-auto flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium backdrop-blur ${triggerClass}`}
+        onClick={() => setOpen(!open)}
+        class="rounded-full bg-white/15 backdrop-blur border border-white/20 px-4 py-2.5 text-sm font-medium hover:bg-white/25 transition min-h-11"
       >
-        <span>📍 {currentName}</span>
-        <span aria-hidden="true">{open ? "▴" : "▾"}</span>
+        📍 {current?.name ?? currentId} <span aria-hidden="true">▾</span>
       </button>
 
       {open && (
-        <div
-          role="listbox"
-          class="absolute left-1/2 z-20 mt-2 w-[min(100vw-2rem,20rem)] -translate-x-1/2 rounded-3xl bg-slate-900/95 p-2 shadow-2xl backdrop-blur-xl"
-        >
-          <ul>
-            {locations.map((location) => (
-              <li key={location.id}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={location.id === currentId}
-                  onClick={() => selectLocation(location.id)}
-                  class={`w-full rounded-2xl px-4 py-3 text-left text-sm text-white ${
-                    location.id === currentId
-                      ? "bg-white/15 font-semibold"
-                      : "hover:bg-white/10"
-                  }`}
-                >
-                  📍 {location.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div class="mt-1 border-t border-white/10 pt-1">
-            <a
-              href="/lokalizacje"
-              class="block rounded-2xl px-4 py-3 text-sm text-white/70 hover:bg-white/10"
+        <div class="absolute top-full mt-2 z-10 w-72 max-w-[90vw] rounded-3xl bg-slate-900/95 backdrop-blur border border-white/20 shadow-xl p-2">
+          {locations.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => choose(l.id)}
+              class={`w-full rounded-2xl px-4 py-3 text-left text-sm min-h-11 hover:bg-white/10 transition ${
+                l.id === currentId ? "bg-white/10 font-semibold" : ""
+              }`}
             >
-              ⚙️ Edytuj lokalizacje…
-            </a>
-          </div>
+              📍 {l.name}
+            </button>
+          ))}
+          <a
+            href="/lokalizacje"
+            class="block w-full rounded-2xl px-4 py-3 text-left text-sm text-white/60 hover:bg-white/10 transition min-h-11"
+          >
+            ⚙️ Edytuj lokalizacje…
+          </a>
         </div>
       )}
     </div>
