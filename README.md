@@ -52,3 +52,25 @@ Test end-to-end z przykładową prognozą:
 
 Push na `main` → automatyczny deploy na Deno Deploy (konfiguracja w `deno.json`
 → `deploy`).
+
+### Odświeżanie prognoz (co godzinę)
+
+| Mechanizm             | Opis                                                                            |
+| --------------------- | ------------------------------------------------------------------------------- |
+| **Cursor Automation** | Główny: deep research AI — `automation/PROMPT.md`, cron `0 * * * *`             |
+| **GitHub Actions**    | Fallback: `.github/workflows/update-forecasts.yml` — Open-Meteo + Jina, bez LLM |
+| **Ręcznie**           | `deno task update-forecasts` (env `POGODAI_API`, domyślnie prod)                |
+
+```bash
+deno task update-forecasts
+POGODAI_API=http://localhost:8000 deno task update-forecasts
+```
+
+### Aktualizacja prognoz (co godzinę)
+
+| Metoda                | Opis                                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| **GitHub Actions**    | `.github/workflows/update-forecasts.yml` — cron co godzinę, Open-Meteo + Jina → POST prod |
+| **Lokalnie**          | `deno task update-forecasts` (env `POGODAI_API`, domyślnie prod)                          |
+| **Cursor Automation** | `automation/PROMPT.md` — deep research AI (gdy działa UI)                                 |
+| **Smoke test**        | `./scripts/seed-forecast.sh` — przykładowe dane                                           |

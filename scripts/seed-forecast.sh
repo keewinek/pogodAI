@@ -4,6 +4,7 @@
 set -euo pipefail
 
 BASE_URL="${1:-http://localhost:8000}"
+BASE_URL="${BASE_URL%/}"
 LOCATION_ID="${2:-warszawa-bialoleka}"
 
 deno run -A scripts/generate-sample-forecast.ts "$LOCATION_ID" > /tmp/pogodai-forecast.json

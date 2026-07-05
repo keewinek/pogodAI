@@ -5,6 +5,10 @@ Konfiguracja automatyzacji:
 - **Nazwa:** PogodAI — aktualizacja prognoz
 - **Harmonogram:** cron `0 * * * *` (co godzinę)
 - **Dostęp do repo:** niepotrzebny (agent działa wyłącznie na HTTP)
+- **Fallback:** GitHub Actions `update-forecasts.yml` (Open-Meteo + Jina, bez
+  LLM) — działa gdy Cursor Automation nie jest skonfigurowana
+- **Fallback:** GitHub Actions co godzinę (`deno task update-forecasts`) gdy ta
+  automatyzacja nie działa
 
 Prompt do wklejenia poniżej.
 
