@@ -35,10 +35,16 @@ export default define.page<typeof handler>(({ data }) => {
   const sectionLabel = isLightTheme(theme) ? "text-slate-600" : "text-white/80";
 
   return (
-    <WeatherLayout theme={theme}>
+    <WeatherLayout theme={theme} compact>
       <Head>
         <title>{location.name} — PogodAI</title>
         <meta name="theme-color" content={THEME_COLORS[theme]} />
+        <meta
+          name="description"
+          content={`${
+            forecast?.verdict.text ?? "Prognoza pogody"
+          } — ${location.name}`}
+        />
       </Head>
 
       <div class="flex justify-center">
@@ -46,6 +52,7 @@ export default define.page<typeof handler>(({ data }) => {
           locations={locations}
           currentId={location.id}
           currentName={location.name}
+          theme={theme}
         />
       </div>
 

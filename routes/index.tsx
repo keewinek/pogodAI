@@ -19,20 +19,32 @@ export default define.page<typeof handler>(({ data }) => {
     <WeatherLayout theme="night">
       <Head>
         <title>PogodAI — Wybierz lokalizację</title>
+        <meta name="theme-color" content="#1e1b4b" />
       </Head>
 
-      <header class="text-center pt-4 space-y-2">
-        <h1 class="text-4xl font-light">PogodAI 🌦️</h1>
-        <p class="text-white/70">Wybierz lokalizację</p>
+      {/* redirect z localStorage — bez UI */}
+      <LocationGate locations={locations} />
+
+      <header class="text-center pt-8 space-y-2">
+        <div class="text-5xl" aria-hidden="true">🌦️</div>
+        <h1 class="text-3xl font-light tracking-tight">PogodAI</h1>
+        <p class="text-white/70 text-sm">
+          Jedna prawdziwa prognoza z wielu źródeł
+        </p>
       </header>
 
-      <LocationGate locations={locations} showPicker />
+      <section class="space-y-3">
+        <h2 class="text-center text-sm font-medium text-white/60 uppercase tracking-wider">
+          Wybierz lokalizację
+        </h2>
+        <LocationGate locations={locations} showPicker />
+      </section>
 
       {locations.length > 0 && (
-        <p class="text-center">
+        <p class="text-center pt-2">
           <a
             href="/lokalizacje"
-            class="text-sm text-white/60 underline underline-offset-4"
+            class="inline-flex min-h-11 items-center text-sm text-white/60 underline underline-offset-4 hover:text-white/80"
           >
             Edytuj lokalizacje…
           </a>

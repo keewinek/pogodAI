@@ -1,7 +1,14 @@
 {
   "locationId": "warszawa-bialoleka",
-  "generatedAt": "2026-07-05T19:00:00.000Z",
-  "sources": ["open-meteo", "yr.no", "google", "tvn", "interia"],
+  "generatedAt": "2026-07-05T19:57:31.600Z",
+  "sources": [
+    "open-meteo",
+    "yr.no",
+    "google",
+    "tvn",
+    "interia",
+    "imgw"
+  ],
   "verdict": {
     "text": "Po południu rozpada się na dobre — weź parasol.",
     "emoji": "🌧️",
@@ -13,13 +20,118 @@
   "days": [
     {
       "date": "2026-07-05",
-      "summary": "Deszczowo od 15:00.",
+      "summary": "Deszczowo od południa — weź parasol.",
       "emoji": "🌧️",
       "tempMin": 9,
       "tempMax": 15,
       "precipitationChance": 70,
       "windKmh": 18,
       "hours": [
+        {
+          "time": "2026-07-05T00:00",
+          "emoji": "🌧️",
+          "temperature": 9,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T01:00",
+          "emoji": "🌧️",
+          "temperature": 10,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T02:00",
+          "emoji": "🌧️",
+          "temperature": 11,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T03:00",
+          "emoji": "🌧️",
+          "temperature": 11,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T04:00",
+          "emoji": "🌧️",
+          "temperature": 12,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T05:00",
+          "emoji": "🌧️",
+          "temperature": 13,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T06:00",
+          "emoji": "🌧️",
+          "temperature": 13,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T07:00",
+          "emoji": "🌧️",
+          "temperature": 14,
+          "precipitationChance": 80,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T08:00",
+          "emoji": "🌧️",
+          "temperature": 14,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T09:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T10:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T11:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T12:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T13:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T14:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 70,
+          "windKmh": 18
+        },
         {
           "time": "2026-07-05T15:00",
           "emoji": "🌧️",
@@ -30,43 +142,64 @@
         {
           "time": "2026-07-05T16:00",
           "emoji": "🌧️",
-          "temperature": 13,
-          "precipitationChance": 60,
-          "windKmh": 16
+          "temperature": 14,
+          "precipitationChance": 70,
+          "windKmh": 18
         },
         {
           "time": "2026-07-05T17:00",
-          "emoji": "⛅",
+          "emoji": "🌧️",
           "temperature": 13,
-          "precipitationChance": 40,
-          "windKmh": 14
+          "precipitationChance": 70,
+          "windKmh": 18
         },
         {
           "time": "2026-07-05T18:00",
-          "emoji": "⛅",
-          "temperature": 12,
-          "precipitationChance": 20,
-          "windKmh": 12
+          "emoji": "🌧️",
+          "temperature": 13,
+          "precipitationChance": 70,
+          "windKmh": 18
         },
         {
           "time": "2026-07-05T19:00",
-          "emoji": "☁️",
-          "temperature": 11,
-          "precipitationChance": 10,
-          "windKmh": 10
+          "emoji": "🌧️",
+          "temperature": 12,
+          "precipitationChance": 65,
+          "windKmh": 18
         },
         {
           "time": "2026-07-05T20:00",
-          "emoji": "☁️",
+          "emoji": "🌧️",
+          "temperature": 11,
+          "precipitationChance": 65,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T21:00",
+          "emoji": "🌧️",
+          "temperature": 11,
+          "precipitationChance": 65,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T22:00",
+          "emoji": "🌧️",
           "temperature": 10,
-          "precipitationChance": 5,
-          "windKmh": 8
+          "precipitationChance": 65,
+          "windKmh": 18
+        },
+        {
+          "time": "2026-07-05T23:00",
+          "emoji": "🌧️",
+          "temperature": 9,
+          "precipitationChance": 65,
+          "windKmh": 18
         }
       ]
     },
     {
       "date": "2026-07-06",
-      "summary": "Przejaśnienia i słonecznie.",
+      "summary": "Przejaśnienia, lekki wiatr.",
       "emoji": "⛅",
       "tempMin": 11,
       "tempMax": 18,
@@ -74,52 +207,178 @@
       "windKmh": 12,
       "hours": [
         {
-          "time": "2026-07-06T06:00",
-          "emoji": "🌤️",
+          "time": "2026-07-06T00:00",
+          "emoji": "⛅",
           "temperature": 11,
-          "precipitationChance": 10,
-          "windKmh": 8
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T01:00",
+          "emoji": "⛅",
+          "temperature": 12,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T02:00",
+          "emoji": "⛅",
+          "temperature": 13,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T03:00",
+          "emoji": "⛅",
+          "temperature": 14,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T04:00",
+          "emoji": "⛅",
+          "temperature": 15,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T05:00",
+          "emoji": "⛅",
+          "temperature": 15,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T06:00",
+          "emoji": "⛅",
+          "temperature": 16,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T07:00",
+          "emoji": "⛅",
+          "temperature": 17,
+          "precipitationChance": 30,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T08:00",
+          "emoji": "☀️",
+          "temperature": 17,
+          "precipitationChance": 20,
+          "windKmh": 12
         },
         {
           "time": "2026-07-06T09:00",
           "emoji": "☀️",
-          "temperature": 14,
-          "precipitationChance": 5,
-          "windKmh": 10
+          "temperature": 18,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T10:00",
+          "emoji": "☀️",
+          "temperature": 18,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T11:00",
+          "emoji": "☀️",
+          "temperature": 18,
+          "precipitationChance": 20,
+          "windKmh": 12
         },
         {
           "time": "2026-07-06T12:00",
           "emoji": "☀️",
-          "temperature": 17,
-          "precipitationChance": 5,
+          "temperature": 18,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T13:00",
+          "emoji": "☀️",
+          "temperature": 18,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T14:00",
+          "emoji": "☀️",
+          "temperature": 18,
+          "precipitationChance": 20,
           "windKmh": 12
         },
         {
           "time": "2026-07-06T15:00",
-          "emoji": "⛅",
-          "temperature": 18,
-          "precipitationChance": 15,
-          "windKmh": 14
+          "emoji": "☀️",
+          "temperature": 17,
+          "precipitationChance": 20,
+          "windKmh": 12
         },
         {
-          "time": "2026-07-06T18:00",
-          "emoji": "⛅",
+          "time": "2026-07-06T16:00",
+          "emoji": "☀️",
+          "temperature": 17,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T17:00",
+          "emoji": "☀️",
           "temperature": 16,
           "precipitationChance": 20,
           "windKmh": 12
         },
         {
-          "time": "2026-07-06T21:00",
-          "emoji": "☁️",
+          "time": "2026-07-06T18:00",
+          "emoji": "☀️",
+          "temperature": 15,
+          "precipitationChance": 20,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T19:00",
+          "emoji": "☀️",
+          "temperature": 15,
+          "precipitationChance": 15,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T20:00",
+          "emoji": "☀️",
           "temperature": 14,
-          "precipitationChance": 25,
-          "windKmh": 10
+          "precipitationChance": 15,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T21:00",
+          "emoji": "☀️",
+          "temperature": 13,
+          "precipitationChance": 15,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T22:00",
+          "emoji": "☀️",
+          "temperature": 12,
+          "precipitationChance": 15,
+          "windKmh": 12
+        },
+        {
+          "time": "2026-07-06T23:00",
+          "emoji": "☀️",
+          "temperature": 11,
+          "precipitationChance": 15,
+          "windKmh": 12
         }
       ]
     },
     {
       "date": "2026-07-07",
-      "summary": "Pogodnie przez cały dzień.",
+      "summary": "Słonecznie przez cały dzień.",
       "emoji": "☀️",
       "tempMin": 13,
       "tempMax": 21,
@@ -127,46 +386,328 @@
       "windKmh": 10,
       "hours": [
         {
-          "time": "2026-07-07T06:00",
-          "emoji": "🌤️",
+          "time": "2026-07-07T00:00",
+          "emoji": "☀️",
           "temperature": 13,
-          "precipitationChance": 5,
-          "windKmh": 6
+          "precipitationChance": 15,
+          "windKmh": 10
+        },
+        {
+          "time": "2026-07-07T03:00",
+          "emoji": "☀️",
+          "temperature": 16,
+          "precipitationChance": 15,
+          "windKmh": 10
+        },
+        {
+          "time": "2026-07-07T06:00",
+          "emoji": "☀️",
+          "temperature": 19,
+          "precipitationChance": 15,
+          "windKmh": 10
         },
         {
           "time": "2026-07-07T09:00",
           "emoji": "☀️",
-          "temperature": 16,
-          "precipitationChance": 0,
-          "windKmh": 8
+          "temperature": 21,
+          "precipitationChance": 5,
+          "windKmh": 10
         },
         {
           "time": "2026-07-07T12:00",
           "emoji": "☀️",
-          "temperature": 20,
-          "precipitationChance": 0,
+          "temperature": 21,
+          "precipitationChance": 5,
           "windKmh": 10
         },
         {
           "time": "2026-07-07T15:00",
           "emoji": "☀️",
-          "temperature": 21,
-          "precipitationChance": 0,
-          "windKmh": 12
+          "temperature": 20,
+          "precipitationChance": 5,
+          "windKmh": 10
         },
         {
           "time": "2026-07-07T18:00",
-          "emoji": "🌤️",
-          "temperature": 19,
+          "emoji": "☀️",
+          "temperature": 18,
           "precipitationChance": 5,
           "windKmh": 10
         },
         {
           "time": "2026-07-07T21:00",
-          "emoji": "⛅",
-          "temperature": 16,
+          "emoji": "☀️",
+          "temperature": 15,
+          "precipitationChance": 0,
+          "windKmh": 10
+        }
+      ]
+    },
+    {
+      "date": "2026-07-08",
+      "summary": "Upalnie i sucho.",
+      "emoji": "☀️",
+      "tempMin": 15,
+      "tempMax": 24,
+      "precipitationChance": 0,
+      "windKmh": 8,
+      "hours": [
+        {
+          "time": "2026-07-08T00:00",
+          "emoji": "☀️",
+          "temperature": 15,
           "precipitationChance": 10,
           "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T03:00",
+          "emoji": "☀️",
+          "temperature": 19,
+          "precipitationChance": 10,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T06:00",
+          "emoji": "☀️",
+          "temperature": 22,
+          "precipitationChance": 10,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T09:00",
+          "emoji": "☀️",
+          "temperature": 23,
+          "precipitationChance": 0,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T12:00",
+          "emoji": "☀️",
+          "temperature": 24,
+          "precipitationChance": 0,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T15:00",
+          "emoji": "☀️",
+          "temperature": 23,
+          "precipitationChance": 0,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T18:00",
+          "emoji": "☀️",
+          "temperature": 21,
+          "precipitationChance": 0,
+          "windKmh": 8
+        },
+        {
+          "time": "2026-07-08T21:00",
+          "emoji": "☀️",
+          "temperature": 17,
+          "precipitationChance": 0,
+          "windKmh": 8
+        }
+      ]
+    },
+    {
+      "date": "2026-07-09",
+      "summary": "Większość dnia słonecznie.",
+      "emoji": "🌤️",
+      "tempMin": 14,
+      "tempMax": 22,
+      "precipitationChance": 10,
+      "windKmh": 11,
+      "hours": [
+        {
+          "time": "2026-07-09T00:00",
+          "emoji": "☀️",
+          "temperature": 14,
+          "precipitationChance": 20,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T03:00",
+          "emoji": "☀️",
+          "temperature": 17,
+          "precipitationChance": 20,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T06:00",
+          "emoji": "☀️",
+          "temperature": 20,
+          "precipitationChance": 20,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T09:00",
+          "emoji": "☀️",
+          "temperature": 22,
+          "precipitationChance": 10,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T12:00",
+          "emoji": "☀️",
+          "temperature": 22,
+          "precipitationChance": 10,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T15:00",
+          "emoji": "☀️",
+          "temperature": 21,
+          "precipitationChance": 10,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T18:00",
+          "emoji": "☀️",
+          "temperature": 19,
+          "precipitationChance": 10,
+          "windKmh": 11
+        },
+        {
+          "time": "2026-07-09T21:00",
+          "emoji": "☀️",
+          "temperature": 16,
+          "precipitationChance": 5,
+          "windKmh": 11
+        }
+      ]
+    },
+    {
+      "date": "2026-07-10",
+      "summary": "Zmienna chmurność, możliwe przelotne opady.",
+      "emoji": "⛅",
+      "tempMin": 12,
+      "tempMax": 19,
+      "precipitationChance": 30,
+      "windKmh": 14,
+      "hours": [
+        {
+          "time": "2026-07-10T00:00",
+          "emoji": "⛅",
+          "temperature": 12,
+          "precipitationChance": 40,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T03:00",
+          "emoji": "⛅",
+          "temperature": 15,
+          "precipitationChance": 40,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T06:00",
+          "emoji": "⛅",
+          "temperature": 17,
+          "precipitationChance": 40,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T09:00",
+          "emoji": "⛅",
+          "temperature": 19,
+          "precipitationChance": 30,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T12:00",
+          "emoji": "⛅",
+          "temperature": 19,
+          "precipitationChance": 30,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T15:00",
+          "emoji": "⛅",
+          "temperature": 18,
+          "precipitationChance": 30,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T18:00",
+          "emoji": "⛅",
+          "temperature": 16,
+          "precipitationChance": 30,
+          "windKmh": 14
+        },
+        {
+          "time": "2026-07-10T21:00",
+          "emoji": "⛅",
+          "temperature": 14,
+          "precipitationChance": 25,
+          "windKmh": 14
+        }
+      ]
+    },
+    {
+      "date": "2026-07-11",
+      "summary": "Deszcz od rana do popołudnia.",
+      "emoji": "🌧️",
+      "tempMin": 10,
+      "tempMax": 16,
+      "precipitationChance": 65,
+      "windKmh": 16,
+      "hours": [
+        {
+          "time": "2026-07-11T00:00",
+          "emoji": "🌧️",
+          "temperature": 10,
+          "precipitationChance": 75,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T03:00",
+          "emoji": "🌧️",
+          "temperature": 12,
+          "precipitationChance": 75,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T06:00",
+          "emoji": "🌧️",
+          "temperature": 14,
+          "precipitationChance": 75,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T09:00",
+          "emoji": "🌧️",
+          "temperature": 16,
+          "precipitationChance": 65,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T12:00",
+          "emoji": "🌧️",
+          "temperature": 16,
+          "precipitationChance": 65,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T15:00",
+          "emoji": "🌧️",
+          "temperature": 15,
+          "precipitationChance": 65,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T18:00",
+          "emoji": "🌧️",
+          "temperature": 14,
+          "precipitationChance": 65,
+          "windKmh": 16
+        },
+        {
+          "time": "2026-07-11T21:00",
+          "emoji": "🌧️",
+          "temperature": 12,
+          "precipitationChance": 60,
+          "windKmh": 16
         }
       ]
     }

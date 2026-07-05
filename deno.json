@@ -1,5 +1,8 @@
 {
   "nodeModulesDir": "manual",
+  "deploy": {
+    "framework": "fresh"
+  },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
     "dev": "deno run -A --unstable-kv npm:vite",

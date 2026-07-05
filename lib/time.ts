@@ -62,14 +62,25 @@ export function formatHour(time: string): string {
   return time.slice(11, 13);
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  "open-meteo": "Open-Meteo",
+  "yr.no": "YR.no",
+  google: "Google",
+  tvn: "TVN",
+  interia: "Interia",
+  onet: "Onet",
+  imgw: "IMGW",
+  icm: "ICM",
+  accuweather: "AccuWeather",
+};
+
 export function formatSources(sources: string[]): string {
   return sources
-    .map((source) =>
-      source
-        .replace(/^https?:\/\//, "")
-        .replace(/^www\./, "")
-        .split(".")[0]
-        .toUpperCase()
-    )
+    .map((source) => {
+      const key =
+        source.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "")
+          .split(".")[0];
+      return SOURCE_LABELS[key] ?? SOURCE_LABELS[source] ?? key.toUpperCase();
+    })
     .join(" · ");
 }

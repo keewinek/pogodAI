@@ -16,10 +16,14 @@ export function Hero(
   const muted = light ? "text-slate-600" : "text-white/80";
 
   return (
-    <section class="text-center pt-2">
-      <div class="text-7xl leading-none mb-2" aria-hidden="true">{emoji}</div>
-      <div class="text-7xl font-light tracking-tight">{temperature}°</div>
-      <p class={`mt-2 text-base ${muted}`}>
+    <section class="text-center pt-1 pb-1">
+      <div class="text-6xl sm:text-7xl leading-none mb-1" aria-hidden="true">
+        {emoji}
+      </div>
+      <div class="text-6xl sm:text-7xl font-extralight tracking-tight">
+        {temperature}°
+      </div>
+      <p class={`mt-1 text-sm sm:text-base ${muted}`}>
         Odczuwalna {feelsLike}° · Wiatr {windKmh} km/h
       </p>
     </section>

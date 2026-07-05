@@ -1,0 +1,27 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 512 512"
+  role="img"
+  aria-label="PogodAI"
+>
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sky)" />
+  <circle cx="360" cy="152" r="72" fill="#fde047" />
+  <path
+    d="M96 320c0-62 50-112 112-112 18 0 35 4 50 12 12-28 40-48 73-48 44 0 79 36 79 80 0 4 0 8-1 12h17c41 0 74 33 74 74s-33 74-74 74H128c-53 0-96-43-96-96 0-12 2-23 6-34z"
+    fill="#fff"
+    fill-opacity="0.95"
+  />
+  <path
+    d="M180 360h152"
+    stroke="#fff"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-opacity="0.35"
+  />
+</svg>

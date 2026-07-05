@@ -20,7 +20,7 @@ export default function LocationGate(
     if (!saved) return;
 
     const exists = locations.some((location) => location.id === saved);
-    if (exists && !clearInvalid && !showPicker) {
+    if (exists && !clearInvalid) {
       globalThis.location.replace(`/${saved}`);
       return;
     }
