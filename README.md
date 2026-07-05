@@ -19,21 +19,20 @@ Szczegółowe plany w folderze `Context/`.
 
 ## API
 
-| Metoda | Ścieżka                     | Autoryzacja             | Opis                               |
-| ------ | --------------------------- | ----------------------- | ---------------------------------- |
-| GET    | `/api/locations`            | —                       | Lista lokalizacji                  |
-| POST   | `/api/locations`            | —                       | Dodaj lokalizację                  |
-| DELETE | `/api/locations/:id`        | —                       | Usuń lokalizację (+ jej prognozę)  |
-| GET    | `/api/forecast/:locationId` | —                       | Najnowsza prognoza dla lokalizacji |
-| POST   | `/api/forecast`             | Bearer `POGODAI_SECRET` | Zapis prognozy (automatyzacja)     |
-| GET    | `/api/health`               | —                       | Status systemu                     |
+| Metoda | Ścieżka                     | Autoryzacja | Opis                               |
+| ------ | --------------------------- | ----------- | ---------------------------------- |
+| GET    | `/api/locations`            | —           | Lista lokalizacji                  |
+| POST   | `/api/locations`            | —           | Dodaj lokalizację                  |
+| DELETE | `/api/locations/:id`        | —           | Usuń lokalizację (+ jej prognozę)  |
+| GET    | `/api/forecast/:locationId` | —           | Najnowsza prognoza dla lokalizacji |
+| POST   | `/api/forecast`             | —           | Zapis prognozy (automatyzacja)     |
+| GET    | `/api/health`               | —           | Status systemu                     |
 
 ## Development
 
 Wymagany [Deno](https://docs.deno.com/runtime/getting_started/installation).
 
 ```bash
-cp .env.example .env   # ustaw POGODAI_SECRET
 deno task dev          # dev server (Vite)
 deno task build        # build produkcyjny
 deno task start        # serwuj build (port 8000)
@@ -42,11 +41,10 @@ deno task start        # serwuj build (port 8000)
 Test end-to-end z przykładową prognozą:
 
 ```bash
-POGODAI_SECRET=... ./scripts/seed-forecast.sh http://localhost:8000 warszawa-bialoleka
+./scripts/seed-forecast.sh http://localhost:8000 warszawa-bialoleka
 ```
 
 ## Deploy
 
 Push na `main` → automatyczny deploy na Deno Deploy (konfiguracja w `deno.json`
-→ `deploy`). Wymagana zmienna środowiskowa `POGODAI_SECRET` w ustawieniach
-aplikacji na Deno Deploy.
+→ `deploy`).

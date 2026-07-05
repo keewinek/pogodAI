@@ -5,14 +5,14 @@ REST API w Fresh 2 (`routes/api/`), JSON, UTF-8. Wszystkie odpowiedzi z
 
 ## 1. Zestawienie endpointów
 
-| Metoda | Ścieżka                     | Autoryzacja             | Opis                                 |
-| ------ | --------------------------- | ----------------------- | ------------------------------------ |
-| GET    | `/api/locations`            | —                       | Lista lokalizacji                    |
-| POST   | `/api/locations`            | —                       | Dodaj lokalizację                    |
-| DELETE | `/api/locations/:id`        | —                       | Usuń lokalizację (+ jej prognozę)    |
-| GET    | `/api/forecast/:locationId` | —                       | Najnowsza prognoza dla lokalizacji   |
-| POST   | `/api/forecast`             | Bearer `POGODAI_SECRET` | Zapis prognozy (tylko automatyzacja) |
-| GET    | `/api/health`               | —                       | Status systemu                       |
+| Metoda | Ścieżka                     | Autoryzacja | Opis                               |
+| ------ | --------------------------- | ----------- | ---------------------------------- |
+| GET    | `/api/locations`            | —           | Lista lokalizacji                  |
+| POST   | `/api/locations`            | —           | Dodaj lokalizację                  |
+| DELETE | `/api/locations/:id`        | —           | Usuń lokalizację (+ jej prognozę)  |
+| GET    | `/api/forecast/:locationId` | —           | Najnowsza prognoza dla lokalizacji |
+| POST   | `/api/forecast`             | —           | Zapis prognozy (automatyzacja)     |
+| GET    | `/api/health`               | —           | Status systemu                     |
 
 Pliki tras:
 
@@ -83,7 +83,6 @@ jest SSR; nie komplikujemy cache'owaniem).
 **Nagłówki:**
 
 ```
-Authorization: Bearer <POGODAI_SECRET>
 Content-Type: application/json
 ```
 
@@ -134,7 +133,6 @@ Content-Type: application/json
 
 Walidacja serwerowa:
 
-- autoryzacja → w razie braku/błędu **401** (bez szczegółów),
 - `locationId` musi istnieć na liście lokalizacji → inaczej **404**,
 - `days`: 1–8 elementów; liczby w sensownych zakresach (temp -60..60, opady
   0..100, wiatr 0..300),
@@ -166,8 +164,6 @@ Walidacja serwerowa:
   bezpośrednio przez tę warstwę, nie przez fetch własnego API).
 - **`lib/types.ts`:** interfejsy `Location`, `Forecast`, `DayForecast`,
   `HourForecast` (współdzielone przez API, SSR i islands).
-- **`lib/auth.ts`:** `requireBearer(req): boolean` — porównanie stałoczasowe z
-  `POGODAI_SECRET`.
 - **Walidacja:** ręczne funkcje strażników typów (bez Zod — trzymamy zależności
   na zerze, walidowane pola są proste).
 - **Błędy:** zawsze `{ "error": string }` po polsku + właściwy status HTTP.

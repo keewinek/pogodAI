@@ -18,7 +18,7 @@ jeden, "ostateczny werdykt" dla wybranej lokalizacji.
 | Baza danych        | **Deno KV** — tylko najnowsza prognoza per lokalizacja (bez historii)                                                                                                                                                                                                    |
 | Zakres prognozy    | Werdykt na dziś + prognoza wielodniowa (5–7 dni) + **prognoza godzinowa per dzień** (dziś i jutro co 1 h, dalsze dni co 3 h)                                                                                                                                             |
 | Routing            | `/` = panel wyboru lokalizacji (lub redirect wg `localStorage`); `/[lokalizacja]` = strona prognozy                                                                                                                                                                      |
-| Edycja lokalizacji | Bez autoryzacji (strona prywatna); autoryzacja kluczem tylko dla POST prognozy z automatyzacji                                                                                                                                                                           |
+| Edycja lokalizacji | Bez autoryzacji (strona prywatna, nieindeksowana)                                                                                                                                                                                                                        |
 | AI                 | Agent w **Cursor Cloud Automations** (cron co godzinę), bez płatnych API zewnętrznych                                                                                                                                                                                    |
 | Źródła             | 3 warstwy: rdzeń (Open-Meteo multi-model, YR.no, Google, IMGW) + pula rotacyjna ~12 serwisów (TVN, Interia, Onet, WP, AccuWeather…) + 0–2 źródła dobierane dynamicznie przez agenta z wyników wyszukiwania; łącznie 6–10 źródeł na lokalizację (szczegóły: `plan-05` §4) |
 | Scraping           | Przez `https://r.jina.ai/<URL>` — czysty Markdown, omija Cloudflare/RODO, oszczędza tokeny                                                                                                                                                                               |
@@ -35,7 +35,6 @@ jeden, "ostateczny werdykt" dla wybranej lokalizacji.
 │     - pobierz źródła przez r.jina.ai (Markdown)          │
 │     - agent AI syntetyzuje JSON prognozy                 │
 │  3. POST https://<app>.deno.dev/api/forecast             │
-│     (nagłówek Authorization: Bearer <SECRET>)            │
 └──────────────────────┬──────────────────────────────────┘
                        │ HTTPS
 ┌──────────────────────▼──────────────────────────────────┐
@@ -61,7 +60,7 @@ jeden, "ostateczny werdykt" dla wybranej lokalizacji.
    `plan-04-api.md`.
 3. **Frontend** — strona główna jak nowoczesna aplikacja pogodowa + edycja
    lokalizacji. Szczegóły: `plan-01-ui.md`, `plan-02-ux.md`.
-4. **Infrastruktura/serwery** — Deno Deploy, KV, sekrety, domeny. Szczegóły:
+4. **Infrastruktura/serwery** — Deno Deploy, KV, domeny. Szczegóły:
    `plan-03-infrastruktura-serwery.md`.
 
 ## 5. Model danych (Deno KV)
@@ -129,7 +128,7 @@ mieści się w limicie 64 KiB wartości KV.
 
 - [ ] Typy współdzielone (`utils.ts` lub `types.ts`)
 - [ ] Helper KV (otwarcie bazy, seed domyślnej lokalizacji Białołęka)
-- [ ] `POST /api/forecast` z autoryzacją Bearer
+- [ ] `POST /api/forecast`
 - [ ] `GET /api/forecast/:locationId`
 - [ ] `GET /api/locations`
 

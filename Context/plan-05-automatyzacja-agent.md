@@ -13,7 +13,6 @@ cała inteligencja to model dostępny w subskrypcji Cursora.
 | Nazwa          | PogodAI — aktualizacja prognoz                |
 | Harmonogram    | cron `0 * * * *` (co godzinę)                 |
 | Dostęp do repo | niepotrzebny (agent działa wyłącznie na HTTP) |
-| Sekrety        | `POGODAI_SECRET` w konfiguracji automatyzacji |
 
 ## 3. Przepływ agenta (krok po kroku)
 
@@ -28,7 +27,6 @@ cała inteligencja to model dostępny w subskrypcji Cursora.
    c) Syntetyzuj JEDEN obiekt Forecast (JSON) wg schematu.
    d) Wyślij:
       curl -s -X POST https://pogodai.deno.dev/api/forecast \
-        -H "Authorization: Bearer $POGODAI_SECRET" \
         -H "Content-Type: application/json" \
         -d '<JSON>'
    e) Sprawdź odpowiedź; przy błędzie — jedna ponowna próba.
@@ -142,7 +140,6 @@ KROKI:
    Werdykt: max 2 zdania, po polsku, z konkretną radą (np. "weź parasol").
 4. Zbuduj JSON zgodny ze schematem (poniżej) i wyślij:
    curl -s -X POST https://pogodai.deno.dev/api/forecast \
-     -H "Authorization: Bearer $POGODAI_SECRET" \
      -H "Content-Type: application/json" \
      -d '<json>'
 5. Zweryfikuj odpowiedź {"ok":true}. Przy błędzie popraw JSON i ponów raz.
@@ -184,7 +181,6 @@ ZASADY:
 | --------------------------------------- | -------------------------------------------------------------------------------------- |
 | Jedno źródło padło / zmienił się layout | Agent pomija źródło, syntetyzuje z pozostałych, `sources` odzwierciedla stan faktyczny |
 | Wszystkie źródła padły dla lokalizacji  | Agent NIE wysyła POST (stara prognoza w KV pozostaje; frontend pokaże jej wiek)        |
-| POST zwraca 401                         | Błąd konfiguracji sekretu — agent raportuje w podsumowaniu przebiegu, nie ponawia      |
 | POST zwraca 400                         | Agent czyta `error`, poprawia JSON, ponawia raz                                        |
 | Deno Deploy nie odpowiada               | Ponowna próba raz; potem raport błędu                                                  |
 
@@ -214,5 +210,4 @@ historia przebiegów w panelu Cursor Automations.
    przed włączeniem crona.
 2. Sprawdzić: `GET /api/forecast/warszawa-bialoleka` zwraca świeży JSON.
 3. Sprawdzić stronę: werdykt się wyświetla, świeżość "przed chwilą".
-4. Test negatywny: POST ze złym sekretem → 401; POST z nieistniejącym
-   `locationId` → 404.
+4. Test negatywny: POST z nieistniejącym `locationId` → 404.

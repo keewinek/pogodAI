@@ -30,11 +30,9 @@ Brak: własnych VPS-ów, Dockera, płatnych API pogodowych, płatnych API LLM.
 
 ### 2.2 Zmienne środowiskowe (Deno Deploy → Settings → Environment Variables)
 
-| Zmienna          | Opis                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| `POGODAI_SECRET` | Sekret Bearer dla `POST /api/forecast` (i mutacji z automatyzacji). Wygenerować: `openssl rand -hex 32` |
+Brak wymaganych zmiennych — aplikacja prywatna, bez autoryzacji API.
 
-Lokalne dev: plik `.env` (dodany do `.gitignore`!) z tą samą zmienną.
+Lokalne dev: brak pliku `.env`.
 
 ### 2.3 Domena
 
@@ -62,15 +60,12 @@ Lokalne dev: plik `.env` (dodany do `.gitignore`!) z tą samą zmienną.
 - Harmonogram: cron `0 * * * *` (co godzinę, o pełnej godzinie).
 - Agent nie potrzebuje dostępu do repo (działa na HTTP: Jina Reader → synteza →
   curl POST). Szczegóły prompta i przepływu: `plan-05-automatyzacja-agent.md`.
-- Sekret `POGODAI_SECRET` przechowywany w konfiguracji automatyzacji (nie
-  hardkodowany w prompcie w repo publicznym; repo prywatne — mimo to trzymajmy
-  sekret poza gitem).
 
 ## 5. Środowiska
 
 | Środowisko  | Jak                               | Uwagi                                                            |
 | ----------- | --------------------------------- | ---------------------------------------------------------------- |
-| Lokalne dev | `deno task dev` (Vite dev server) | KV lokalny (SQLite); `.env` z sekretem dev                       |
+| Lokalne dev | `deno task dev` (Vite dev server) | KV lokalny (SQLite)                                              |
 | Preview     | push na branch ≠ main             | osobny URL, współdzieli KV projektu — uwaga przy testach mutacji |
 | Produkcja   | push na `main`                    | jedyne środowisko z automatyzacją                                |
 
@@ -78,18 +73,14 @@ Test lokalny POST-a:
 
 ```bash
 curl -X POST http://localhost:8000/api/forecast \
-  -H "Authorization: Bearer $POGODAI_SECRET" \
   -H "Content-Type: application/json" \
   -d @Context/przyklad-forecast.json
 ```
 
 ## 6. Bezpieczeństwo
 
-- **Mutacje prognoz** (`POST /api/forecast`): wymagany nagłówek
-  `Authorization: Bearer <POGODAI_SECRET>`; porównanie stałoczasowe
-  (`crypto.timingSafeEqual` na hashach) — tania dobra praktyka.
-- **Odczyty i edycja lokalizacji**: bez autoryzacji (decyzja właściciela —
-  aplikacja prywatna, nieindeksowana).
+- **API bez autoryzacji** — aplikacja prywatna, nieindeksowana; ochrona przez
+  obscurity URL + brak linków publicznych.
 - `robots.txt`: `Disallow: /` — nie chcemy indeksacji prywatnej apki.
 - Walidacja wejścia POST (kształt JSON, zakresy liczb) — chroni KV przed
   śmieciowymi danymi.

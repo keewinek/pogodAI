@@ -1,17 +1,12 @@
 import { define } from "@/utils.ts";
 import { getLocation, setForecast } from "@/lib/db.ts";
 import { errorJson, json } from "@/lib/http.ts";
-import { requireBearer } from "@/lib/auth.ts";
 import { validateForecast } from "@/lib/validate.ts";
 
 const MAX_BODY_BYTES = 60 * 1024; // limit wartości Deno KV to 64 KiB
 
 export const handler = define.handlers({
   async POST(ctx) {
-    if (!(await requireBearer(ctx.req))) {
-      return errorJson("Brak autoryzacji.", 401);
-    }
-
     const raw = await ctx.req.text();
     if (raw.length > MAX_BODY_BYTES) {
       return errorJson("Body przekracza limit 60 KiB.", 400);
