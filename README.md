@@ -13,9 +13,12 @@ deno task dev
 ## Produkcja (Deno Deploy)
 
 1. [dash.deno.com](https://dash.deno.com) → New Project → GitHub → `pogodAI`
-2. Framework preset: **Fresh** (wykrywany automatycznie z `deno.json`)
-3. Env var: `POGODAI_SECRET` (`openssl rand -hex 32`)
-4. Push na `main` = deploy produkcyjny
+2. **App directory:** zostaw puste (katalog główny repo) — `deno.json` musi być w rootcie
+3. Framework preset: **Fresh** (wykrywany z `deno.json` → `deploy.framework`)
+4. Env var: `POGODAI_SECRET` (`openssl rand -hex 32`)
+5. Push na `main` = deploy produkcyjny
+
+Jeśli build pada z `couldn't find deno.json` → w Settings → App configuration ustaw **App directory** na `.` (pusty root repo).
 
 ### Seed prognozy (test)
 
