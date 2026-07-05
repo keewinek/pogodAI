@@ -1,6 +1,9 @@
 {
   "nodeModulesDir": "manual",
+  "unstable": ["kv"],
   "deploy": {
+    "org": "keewinek",
+    "app": "pogodai",
     "framework": "fresh",
     "install": "deno install --allow-scripts --frozen-lockfile",
     "build": "deno run -A npm:vite build"
