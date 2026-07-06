@@ -149,6 +149,21 @@ interface OpenMeteoPayload {
     precipitation_probability_max?: number[];
     wind_speed_10m_max?: number[];
     weather_code?: number[];
+    temperature_2m_max_icon_seamless?: number[];
+    temperature_2m_max_gfs_seamless?: number[];
+    temperature_2m_max_ecmwf_ifs025?: number[];
+    temperature_2m_min_icon_seamless?: number[];
+    temperature_2m_min_gfs_seamless?: number[];
+    temperature_2m_min_ecmwf_ifs025?: number[];
+    precipitation_probability_max_icon_seamless?: number[];
+    precipitation_probability_max_gfs_seamless?: number[];
+    precipitation_probability_max_ecmwf_ifs025?: number[];
+    wind_speed_10m_max_icon_seamless?: number[];
+    wind_speed_10m_max_gfs_seamless?: number[];
+    wind_speed_10m_max_ecmwf_ifs025?: number[];
+    weather_code_icon_seamless?: number[];
+    weather_code_gfs_seamless?: number[];
+    weather_code_ecmwf_ifs025?: number[];
   };
   hourly?: {
     time: string[];
@@ -165,6 +180,51 @@ interface OpenMeteoPayload {
     weather_code_gfs_seamless?: number[];
     weather_code_ecmwf_ifs025?: number[];
   };
+}
+
+function modelDailyValues(
+  daily: OpenMeteoPayload["daily"],
+  idx: number,
+  field: "tempMax" | "tempMin" | "precip" | "wind" | "code",
+): number[] {
+  if (!daily) return [];
+  const pick = (a?: number[], b?: number[], c?: number[]) =>
+    [a?.[idx], b?.[idx], c?.[idx]].filter((v): v is number =>
+      typeof v === "number" && Number.isFinite(v)
+    );
+
+  switch (field) {
+    case "tempMax":
+      return pick(
+        daily.temperature_2m_max_icon_seamless,
+        daily.temperature_2m_max_gfs_seamless,
+        daily.temperature_2m_max_ecmwf_ifs025,
+      );
+    case "tempMin":
+      return pick(
+        daily.temperature_2m_min_icon_seamless,
+        daily.temperature_2m_min_gfs_seamless,
+        daily.temperature_2m_min_ecmwf_ifs025,
+      );
+    case "precip":
+      return pick(
+        daily.precipitation_probability_max_icon_seamless,
+        daily.precipitation_probability_max_gfs_seamless,
+        daily.precipitation_probability_max_ecmwf_ifs025,
+      );
+    case "wind":
+      return pick(
+        daily.wind_speed_10m_max_icon_seamless,
+        daily.wind_speed_10m_max_gfs_seamless,
+        daily.wind_speed_10m_max_ecmwf_ifs025,
+      );
+    case "code":
+      return pick(
+        daily.weather_code_icon_seamless,
+        daily.weather_code_gfs_seamless,
+        daily.weather_code_ecmwf_ifs025,
+      );
+  }
 }
 
 function modelValues(
@@ -280,19 +340,24 @@ async function buildForecast(
     const date = daily.time[d];
     const stepH = d < 2 ? 1 : 3;
     const hours = buildHoursForDay(hourly, date, stepH);
-    const tempMin = round(daily.temperature_2m_min?.[d] ?? 0);
-    const tempMax = round(daily.temperature_2m_max?.[d] ?? 0);
+    const tempMins = modelDailyValues(daily, d, "tempMin");
+    const tempMaxs = modelDailyValues(daily, d, "tempMax");
+    const precips = modelDailyValues(daily, d, "precip");
+    const winds = modelDailyValues(daily, d, "wind");
+    const codes = modelDailyValues(daily, d, "code");
+    const tempMin = round(median(tempMins.length ? tempMins : [0]));
+    const tempMax = round(median(tempMaxs.length ? tempMaxs : [0]));
     const precip = clamp(
-      round(daily.precipitation_probability_max?.[d] ?? 0),
+      round(median(precips.length ? precips : [0])),
       0,
       100,
     );
     const wind = clamp(
-      round(daily.wind_speed_10m_max?.[d] ?? 0),
+      round(median(winds.length ? winds : [0])),
       0,
       300,
     );
-    const code = daily.weather_code?.[d] ?? 0;
+    const code = round(median(codes.length ? codes : [0]));
     const emoji = weatherCodeToEmoji(code);
 
     days.push({
