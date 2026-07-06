@@ -1,5 +1,5 @@
 import { define } from "@/utils.ts";
-import { getLocation, setForecast } from "@/lib/db.ts";
+import { getLocation, setForecast, archivePendingVerifications } from "@/lib/db.ts";
 import { errorJson, json } from "@/lib/db.ts";
 import { validateForecast } from "@/lib/validate.ts";
 
@@ -27,6 +27,7 @@ export const handler = define.handlers({
       return errorJson("Nie znaleziono lokalizacji o podanym locationId.", 404);
     }
 
+    await archivePendingVerifications(parsed.value);
     await setForecast(parsed.value);
     return json({ ok: true });
   },
