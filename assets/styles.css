@@ -74,6 +74,36 @@ body {
 .app-content {
   position: relative;
   z-index: 1;
+  padding-top: calc(3rem + env(safe-area-inset-top, 0px));
+}
+
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-header-title {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+}
+
+.app-header-title:hover {
+  color: #fff;
 }
 
 .no-scrollbar {

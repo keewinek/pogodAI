@@ -24,6 +24,9 @@ export default define.page(function App({ Component, state }) {
         data-theme={theme.name}
       >
         <div class="app-shell">
+          <header class="app-header">
+            <a href="/" class="app-header-title">PogodAI</a>
+          </header>
           <div class="app-ambient" aria-hidden="true" />
           <div class="app-content">
             <Component />
