@@ -128,10 +128,15 @@ const MONTHS_SHORT = [
   "gru",
 ];
 
-/** Etykieta dnia w UI: „6 lip”. */
+const DAY_NAMES = ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."];
+
+/** Etykieta dnia w UI: „Pon. 6 lip”. */
 export function dayDateLabel(date: string): string {
-  const [, m, d] = date.split("-");
-  return `${Number(d)} ${MONTHS_SHORT[Number(m) - 1]}`;
+  const d = new Date(`${date}T12:00:00Z`);
+  const [, m, day] = date.split("-");
+  return `${DAY_NAMES[d.getUTCDay()]} ${Number(day)} ${
+    MONTHS_SHORT[Number(m) - 1]
+  }`;
 }
 
 export function warsawToday(date = new Date()): string {

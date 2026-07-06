@@ -305,7 +305,7 @@ body {
 .daily-row {
   display: grid;
   grid-template-columns:
-    3.5rem 1.625rem 1.75rem minmax(2rem, 1fr) 1.75rem 2.125rem 0.75rem;
+    5.75rem 1.625rem 1.75rem minmax(2rem, 1fr) 1.75rem 2.125rem 0.75rem;
   align-items: center;
   column-gap: 8px;
   padding: 10px 10px;
@@ -330,10 +330,11 @@ body {
 }
 
 .daily-date {
-  font-size: 15px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   color: rgba(255, 255, 255, 0.88);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
 }
 
 .daily-row:not(.daily-row-today) .daily-date {
