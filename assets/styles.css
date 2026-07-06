@@ -298,10 +298,105 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.daily-list {
+  padding: 6px 6px 8px;
+}
+
+.daily-row {
+  display: grid;
+  grid-template-columns:
+    3.5rem 1.625rem 1.75rem minmax(2rem, 1fr) 1.75rem 2.125rem 0.75rem;
+  align-items: center;
+  column-gap: 8px;
+  padding: 10px 10px;
+  width: 100%;
+  text-align: left;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+  min-height: 44px;
+}
+
+.daily-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.daily-row-today {
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.daily-row-today:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.daily-date {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: -0.01em;
+}
+
+.daily-row:not(.daily-row-today) .daily-date {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.daily-emoji {
+  font-size: 1.25rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.daily-temp-low {
+  text-align: right;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.daily-temp-high {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.daily-precip {
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.daily-precip-wet {
+  color: rgba(147, 197, 253, 0.9);
+  font-weight: 500;
+}
+
+.daily-bar {
+  min-width: 0;
+  padding: 0 1px;
+}
+
+.daily-detail {
+  margin: 0 4px 4px;
+  padding: 10px 6px 8px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.daily-wind {
+  margin-top: 8px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
 .temp-range-track {
   position: relative;
-  height: 4px;
-  border-radius: 2px;
+  height: 5px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.12);
   overflow: hidden;
 }

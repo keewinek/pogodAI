@@ -171,9 +171,10 @@ export function DailyAccordion(
   }, [days]);
 
   return (
-    <div class="grouped">
+    <div class="grouped daily-list">
       {days.map((day, i) => {
         const open = openIdx === i;
+        const isToday = day.date === todayDate;
         const { min: tempMin, max: tempMax } = dayTemps(day);
         const precip = dayPrecip(day);
         const wind = dayWind(day);
@@ -185,47 +186,36 @@ export function DailyAccordion(
               type="button"
               aria-expanded={open}
               onClick={() => setOpenIdx(open ? null : i)}
-              class={`grouped-row w-full text-left transition hover:bg-white/[0.04] py-3 ${
-                day.date === todayDate ? "font-semibold" : ""
-              }`}
+              class={`daily-row ${isToday ? "daily-row-today" : ""}`}
             >
-              <span class="w-[4.5rem] shrink-0 text-[15px] tabular-nums">
-                {labels[i]}
-              </span>
-              <span
-                class="text-[20px] leading-none select-none shrink-0"
-                aria-hidden="true"
-              >
-                {rowEmoji}
-              </span>
-              <div class="flex-1 flex items-center gap-2 min-w-0 mx-1">
-                <span class="text-[15px] muted tabular-nums w-7 text-right shrink-0">
-                  {Math.round(tempMin)}°
-                </span>
-                <div class="temp-range-track flex-1 min-w-[3rem]">
+              <span class="daily-date">{labels[i]}</span>
+              <span class="daily-emoji" aria-hidden="true">{rowEmoji}</span>
+              <span class="daily-temp-low">{Math.round(tempMin)}°</span>
+              <div class="daily-bar">
+                <div class="temp-range-track">
                   <div
                     class="temp-range-fill"
                     style={{ left: bar.left, width: bar.width }}
                   />
                 </div>
-                <span class="text-[15px] tabular-nums w-7 shrink-0">
-                  {Math.round(tempMax)}°
-                </span>
               </div>
-              <span class="w-9 shrink-0 text-right text-[14px] muted tabular-nums">
+              <span class="daily-temp-high">{Math.round(tempMax)}°</span>
+              <span
+                class={`daily-precip ${precip > 0 ? "daily-precip-wet" : ""}`}
+              >
                 {precip > 0 ? `${Math.round(precip)}%` : "—"}
               </span>
               <span
-                class={`chevron transition-transform duration-200 ${
+                class={`chevron transition-transform duration-200 opacity-60 ${
                   open ? "rotate-[135deg]" : "chevron-down"
                 }`}
                 aria-hidden="true"
               />
             </button>
             {open && (
-              <div class="px-4 pb-4 pt-2">
+              <div class="daily-detail">
                 <HourlyStrip hours={day.hours} embedded />
-                <p class="mt-3 text-[13px] muted tabular-nums">
+                <p class="daily-wind">
                   Wiatr do {Math.round(wind)} km/h
                 </p>
               </div>
