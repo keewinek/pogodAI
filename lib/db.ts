@@ -294,9 +294,7 @@ export async function listVerifiedPairs(
 ): Promise<VerifiedPair[]> {
   const kv = await getKv();
   const pairs: VerifiedPair[] = [];
-  const prefix = locationId
-    ? [VERIFY_DONE_KEY, locationId]
-    : [VERIFY_DONE_KEY];
+  const prefix = locationId ? [VERIFY_DONE_KEY, locationId] : [VERIFY_DONE_KEY];
   for await (
     const entry of kv.list<VerifiedPair>({ prefix })
   ) {

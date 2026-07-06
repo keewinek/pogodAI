@@ -299,7 +299,8 @@ export function buildVerifiedPair(
     leadBucket: bucket,
     predictedTemp: pending.predictedTemp,
     predictedPrecipChance: pending.predictedPrecipChance,
-    predictedRain: pending.predictedPrecipChance >= PRECIP_CHANCE_RAIN_THRESHOLD,
+    predictedRain:
+      pending.predictedPrecipChance >= PRECIP_CHANCE_RAIN_THRESHOLD,
     actualTemp,
     actualRain,
     actualPrecipMm,

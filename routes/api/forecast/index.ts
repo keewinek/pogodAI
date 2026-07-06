@@ -1,5 +1,9 @@
 import { define } from "@/utils.ts";
-import { getLocation, setForecast, archivePendingVerifications } from "@/lib/db.ts";
+import {
+  archivePendingVerifications,
+  getLocation,
+  setForecast,
+} from "@/lib/db.ts";
 import { errorJson, json } from "@/lib/db.ts";
 import { validateForecast } from "@/lib/validate.ts";
 

@@ -204,14 +204,51 @@ export function LocationEditor(
   { initialLocations }: { initialLocations: Location[] },
 ) {
   const [locations, setLocations] = useState(initialLocations);
-  const [name, setName] = useState("");
-  const [lat, setLat] = useState("");
-  const [lon, setLon] = useState("");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<
+    { name: string; lat: number; lon: number }[]
+  >([]);
+  const [selected, setSelected] = useState<
+    { name: string; lat: number; lon: number } | null
+  >(null);
+  const [searching, setSearching] = useState(false);
   const [busy, setBusy] = useState(false);
   const [gpsBusy, setGpsBusy] = useState(false);
   const [message, setMessage] = useState<
     { kind: "ok" | "error"; text: string } | null
   >(null);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2 || (selected && q === selected.name)) {
+      setResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `/api/locations/search?q=${encodeURIComponent(q)}`,
+        );
+        const data = await res.json();
+        if (res.ok) setResults(data.results ?? []);
+      } catch {
+        /* ignore transient search errors */
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query, selected]);
+
+  const pick = (place: { name: string; lat: number; lon: number }) => {
+    setSelected(place);
+    setQuery(place.name);
+    setResults([]);
+    setMessage(null);
+  };
 
   const useGps = () => {
     setMessage(null);
@@ -224,12 +261,26 @@ export function LocationEditor(
     }
     setGpsBusy(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(pos.coords.latitude.toFixed(5));
-        setLon(pos.coords.longitude.toFixed(5));
-        if (!name.trim()) setName("Moja lokalizacja");
-        setMessage({ kind: "ok", text: "Wczytano współrzędne z GPS." });
-        setGpsBusy(false);
+      async (pos) => {
+        try {
+          const res = await fetch(
+            `/api/locations/search?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`,
+          );
+          const data = await res.json();
+          if (!res.ok || !data.results?.[0]) {
+            setMessage({
+              kind: "error",
+              text: data.error ?? "Nie udało się rozpoznać miejsca.",
+            });
+            return;
+          }
+          pick(data.results[0]);
+          setMessage({ kind: "ok", text: "Wczytano lokalizację z GPS." });
+        } catch {
+          setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
+        } finally {
+          setGpsBusy(false);
+        }
       },
       (err) => {
         const texts: Record<number, string> = {
@@ -247,25 +298,25 @@ export function LocationEditor(
     );
   };
 
-  const add = async (e: Event) => {
-    e.preventDefault();
+  const add = async () => {
+    if (!selected) {
+      setMessage({
+        kind: "error",
+        text: "Wybierz miejscowość z listy lub GPS.",
+      });
+      return;
+    }
     setMessage(null);
-    const latN = parseFloat(lat);
-    const lonN = parseFloat(lon);
-    if (!name.trim()) {
-      setMessage({ kind: "error", text: "Podaj nazwę lokalizacji." });
-      return;
-    }
-    if (!Number.isFinite(latN) || !Number.isFinite(lonN)) {
-      setMessage({ kind: "error", text: "Podaj poprawne współrzędne." });
-      return;
-    }
     setBusy(true);
     try {
       const res = await fetch("/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), lat: latN, lon: lonN }),
+        body: JSON.stringify({
+          name: selected.name,
+          lat: selected.lat,
+          lon: selected.lon,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -276,9 +327,9 @@ export function LocationEditor(
         return;
       }
       setLocations([...locations, data]);
-      setName("");
-      setLat("");
-      setLon("");
+      setQuery("");
+      setSelected(null);
+      setResults([]);
       setMessage({
         kind: "ok",
         text: "Dodano. Prognoza pojawi się w ciągu godziny.",
@@ -313,27 +364,22 @@ export function LocationEditor(
   };
 
   return (
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-6">
       <section>
-        <h2 class="section-label">Zapisane lokalizacje</h2>
+        <h2 class="section-label">Zapisane</h2>
         {locations.length === 0
           ? (
-            <div class="grouped-panel grouped-panel-padded text-center">
-              <p class="text-[15px] muted-strong">
-                Brak lokalizacji — dodaj pierwszą poniżej.
-              </p>
-            </div>
+            <p class="text-[15px] muted-strong px-1">
+              Brak lokalizacji.
+            </p>
           )
           : (
             <div class="grouped-panel grouped-divider">
               {locations.map((l) => (
                 <div key={l.id} class="grouped-row">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-[17px] font-medium truncate">{l.name}</p>
-                    <p class="text-[13px] muted tabular-nums mt-0.5">
-                      {l.lat.toFixed(4)}°, {l.lon.toFixed(4)}°
-                    </p>
-                  </div>
+                  <p class="flex-1 min-w-0 text-[17px] font-medium truncate">
+                    {l.name}
+                  </p>
                   <button
                     type="button"
                     aria-label={`Usuń lokalizację ${l.name}`}
@@ -349,66 +395,54 @@ export function LocationEditor(
       </section>
 
       <section>
-        <h2 class="section-label">Dodaj lokalizację</h2>
-        <form
-          onSubmit={add}
-          class="grouped-panel grouped-panel-padded flex flex-col gap-4"
-        >
-          <label class="flex flex-col gap-2">
-            <span class="text-[13px] font-semibold muted">Nazwa</span>
-            <input
-              type="text"
-              value={name}
-              onInput={(e) => setName((e.target as HTMLInputElement).value)}
-              placeholder="np. Białołęka, Warszawa"
-              class="field"
-            />
-          </label>
+        <h2 class="section-label">Dodaj</h2>
+        <div class="grouped-panel grouped-panel-padded flex flex-col gap-3">
+          <input
+            type="search"
+            value={query}
+            onInput={(e) => {
+              const value = (e.target as HTMLInputElement).value;
+              setQuery(value);
+              if (selected && value !== selected.name) setSelected(null);
+              setMessage(null);
+            }}
+            placeholder="Szukaj miasta…"
+            class="field"
+            autocomplete="off"
+          />
 
-          <div class="flex flex-col gap-3">
-            <div class="flex items-center justify-between gap-3">
-              <span class="text-[13px] font-semibold muted">Współrzędne</span>
-              <button
-                type="button"
-                onClick={useGps}
-                disabled={gpsBusy || busy}
-                class="btn-secondary shrink-0"
-              >
-                {gpsBusy ? "Szukam GPS…" : "📍 Pobierz z GPS"}
-              </button>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <label class="flex flex-col gap-2">
-                <span class="text-[12px] font-medium muted">
-                  Szerokość (lat)
-                </span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={lat}
-                  onInput={(e) => setLat((e.target as HTMLInputElement).value)}
-                  placeholder="52.32"
-                  class="field"
-                />
-              </label>
-              <label class="flex flex-col gap-2">
-                <span class="text-[12px] font-medium muted">Długość (lon)</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={lon}
-                  onInput={(e) => setLon((e.target as HTMLInputElement).value)}
-                  placeholder="20.97"
-                  class="field"
-                />
-              </label>
-            </div>
-          </div>
+          {searching && <p class="text-[14px] muted px-1">Szukam…</p>}
+
+          {results.length > 0 && (
+            <ul class="search-results">
+              {results.map((place) => (
+                <li key={`${place.name}-${place.lat}`}>
+                  <button
+                    type="button"
+                    onClick={() => pick(place)}
+                    class="search-result-row"
+                  >
+                    {place.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <button
-            type="submit"
-            disabled={busy || gpsBusy}
-            class="btn-primary w-full mt-1"
+            type="button"
+            onClick={useGps}
+            disabled={gpsBusy || busy}
+            class="btn-secondary w-full"
+          >
+            {gpsBusy ? "Szukam GPS…" : "Pobierz z GPS"}
+          </button>
+
+          <button
+            type="button"
+            onClick={add}
+            disabled={busy || gpsBusy || !selected}
+            class="btn-primary w-full"
           >
             {busy ? "Dodawanie…" : "Dodaj lokalizację"}
           </button>
@@ -423,7 +457,7 @@ export function LocationEditor(
               {message.text}
             </p>
           )}
-        </form>
+        </div>
       </section>
     </div>
   );

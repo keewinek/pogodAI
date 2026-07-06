@@ -64,7 +64,10 @@ export async function fetchHourlyObservations(
 }
 
 /** Czy obserwacja dla validTime jest już dostępna (godzina minęła). */
-export function observationShouldExist(validTime: string, now = new Date()): boolean {
+export function observationShouldExist(
+  validTime: string,
+  now = new Date(),
+): boolean {
   const validMs = warsawLocalToDate(validTime).getTime();
   return now.getTime() >= validMs + 3_600_000;
 }

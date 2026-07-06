@@ -298,6 +298,91 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.precip-badge-link {
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.precip-badge-link:hover {
+  opacity: 0.85;
+  color: var(--text-secondary);
+}
+
+.accuracy-header {
+  padding: 0 2px;
+}
+
+.accuracy-hero-value {
+  font-size: 36px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.accuracy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accuracy-card {
+  background: var(--surface-elevated, rgba(255, 255, 255, 0.06));
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.accuracy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.accuracy-city-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accuracy-audit {
+  margin-top: 4px;
+}
+
+.accuracy-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+  font-size: 14px;
+}
+
+.accuracy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.accuracy-table th {
+  text-align: left;
+  padding: 8px 6px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.accuracy-cell {
+  padding: 10px 6px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+}
+
+.accuracy-row:last-child .accuracy-cell {
+  border-bottom: none;
+}
+
 .hour-strip {
   padding: 4px 0;
 }
@@ -548,6 +633,34 @@ body {
   color: #ffb4b4;
   background: rgba(255, 90, 90, 0.14);
   border: 1px solid rgba(255, 120, 120, 0.28);
+}
+
+.search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.search-result-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  min-height: 44px;
+}
+
+.search-result-row:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-results li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .muted {

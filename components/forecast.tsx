@@ -6,6 +6,7 @@ import {
   hourLabel,
   relativeTime,
 } from "../lib/display.ts";
+import { formatAccuracyPl } from "../lib/verification.ts";
 
 export function Hero(
   { verdict, hour }: { verdict: Verdict; hour: number },
@@ -43,15 +44,30 @@ export function Hero(
   );
 }
 
-export function VerdictCard({ verdict }: { verdict: Verdict }) {
+export function VerdictCard(
+  { verdict, accuracy, preliminary }: {
+    verdict: Verdict;
+    accuracy: number | null;
+    preliminary?: boolean;
+  },
+) {
+  const label = accuracy != null
+    ? `${formatAccuracyPl(accuracy)} sprawdzalności${
+      preliminary ? " (wstępnie)" : ""
+    }`
+    : "Zbieram dane sprawdzalności…";
+
   return (
     <section class="verdict-block">
       <p class="verdict-text">
         {verdict.text}
       </p>
-      <p class="precip-badge mt-3">
-        {Math.round(verdict.precipitationChance)}% szansa opadów
-      </p>
+      <a
+        href="/sprawdzalnosc"
+        class="precip-badge precip-badge-link mt-3 block"
+      >
+        {label}
+      </a>
     </section>
   );
 }

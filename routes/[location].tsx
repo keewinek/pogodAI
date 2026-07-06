@@ -1,6 +1,11 @@
 import { HttpError } from "fresh";
 import { define } from "../utils.ts";
-import { getForecast, getLocation, listLocations } from "../lib/db.ts";
+import {
+  getForecast,
+  getGlobalAccuracyStats,
+  getLocation,
+  listLocations,
+} from "../lib/db.ts";
 import {
   dayDateLabel,
   DEFAULT_THEME,
@@ -17,15 +22,17 @@ import {
 } from "../components/forecast.tsx";
 import { RainRadar } from "../islands/RainRadar.tsx";
 import { DailyAccordion, LocationPicker } from "../islands/ui.tsx";
+import { PRELIMINARY_PAIR_THRESHOLD } from "../lib/verification.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
     const location = await getLocation(ctx.params.location);
     if (!location) throw new HttpError(404);
 
-    const [locations, forecast] = await Promise.all([
+    const [locations, forecast, accuracyStats] = await Promise.all([
       listLocations(),
       getForecast(location.id),
+      getGlobalAccuracyStats(),
     ]);
 
     ctx.state.theme = forecast
@@ -33,12 +40,12 @@ export const handler = define.handlers({
       : DEFAULT_THEME;
     ctx.state.title = `PogodAI — ${location.name}`;
 
-    return { data: { location, locations, forecast } };
+    return { data: { location, locations, forecast, accuracyStats } };
   },
 });
 
 export default define.page<typeof handler>(function LocationPage({ data }) {
-  const { location, locations, forecast } = data;
+  const { location, locations, forecast, accuracyStats } = data;
   const today = warsawToday();
 
   return (
@@ -60,7 +67,14 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
         : (
           <>
             <Hero verdict={forecast.verdict} hour={warsawHour()} />
-            <VerdictCard verdict={forecast.verdict} />
+            <VerdictCard
+              verdict={forecast.verdict}
+              accuracy={accuracyStats.totalPairs > 0
+                ? accuracyStats.overallAccuracy
+                : null}
+              preliminary={accuracyStats.totalPairs > 0 &&
+                accuracyStats.totalPairs < PRELIMINARY_PAIR_THRESHOLD}
+            />
             <section>
               <h2 class="section-label">Godzinowa</h2>
               <HourlyStrip
