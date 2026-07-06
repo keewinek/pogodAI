@@ -29,6 +29,20 @@ const MAJOR_CITIES = new Set([
 
 const NOMINATIM = "https://nominatim.openstreetmap.org";
 const USER_AGENT = "PogodAI/1.0 (https://pogodai.keewinek.deno.net)";
+const REQUEST_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(
+  url: string | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 function shortVoivodeship(admin1: string): string {
   const s = admin1.replace(/^województwo\s+/i, "").trim();
@@ -89,7 +103,7 @@ export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   url.searchParams.set("language", "pl");
   url.searchParams.set("country_code", "PL");
 
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error("Geocoding search failed");
 
   const data = await res.json() as { results?: OpenMeteoHit[] };
@@ -113,7 +127,9 @@ export async function reversePlace(
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("accept-language", "pl");
 
-  const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+  const res = await fetchWithTimeout(url, {
+    headers: { "User-Agent": USER_AGENT },
+  });
   if (!res.ok) throw new Error("Reverse geocoding failed");
 
   const data = await res.json() as { address?: Record<string, string> };

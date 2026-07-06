@@ -284,10 +284,6 @@ export function dayPrecip(day: DayForecast): number {
   return day.precipitationChance > 0 ? day.precipitationChance : fromHours;
 }
 
-export function hourFromTime(time: string): number {
-  return parseInt(time.slice(11, 13), 10);
-}
-
 /** Ikona dnia — najwyższy poziom hierarchii z całej doby. */
 export function dayEmoji(day: DayForecast): string {
   if (day.hours.length === 0) return "⛅";

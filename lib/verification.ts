@@ -1,6 +1,16 @@
 import type { Forecast, HourForecast } from "./db.ts";
 
-export type LeadBucket = "hourly" | "day1" | "day2" | "day3";
+/** Koszyki horyzontu — rozdzielczość maleje wraz ze wzrostem lead time (skill decay). */
+export type LeadBucket =
+  | "hourly"
+  | "day1"
+  | "day2"
+  | "day3"
+  | "day4"
+  | "day5"
+  | "day6"
+  | "day7"
+  | "week2";
 
 export interface PendingVerification {
   validTime: string;
@@ -44,22 +54,40 @@ export interface AccuracyStats {
   byLocation?: Record<string, { count: number; accuracy: number }>;
 }
 
-export const LEAD_BUCKETS: LeadBucket[] = ["hourly", "day1", "day2", "day3"];
+export const LEAD_BUCKETS: LeadBucket[] = [
+  "hourly",
+  "day1",
+  "day2",
+  "day3",
+  "day4",
+  "day5",
+  "day6",
+  "day7",
+  "week2",
+];
 export const PRECIP_RAIN_THRESHOLD_MM = 0.1;
 export const PRECIP_CHANCE_RAIN_THRESHOLD = 50;
 export const MIN_LEAD_HOURS = 6;
-export const MAX_LEAD_HOURS = 84;
-export const SAMPLE_HOURS_PER_FORECAST = 4;
+/** 14 dni × 24 h — zgodnie z długością prognozy w days[]. */
+export const MAX_LEAD_HOURS = 336;
+/** Jedna zamrożona próbka na koszyk horyzontu (stratyfikacja). */
+export const SAMPLE_HOURS_PER_FORECAST = LEAD_BUCKETS.length;
 export const STALE_PENDING_DAYS = 7;
 export const MAX_VERIFIED_HISTORY = 200;
 export const PRELIMINARY_PAIR_THRESHOLD = 10;
 
-const EMPTY_BUCKETS = (): Record<LeadBucket, BucketStats> => ({
-  hourly: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-  day1: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-  day2: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-  day3: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
+const emptyBucket = (): BucketStats => ({
+  count: 0,
+  tempMaeSum: 0,
+  brierSum: 0,
+  accuracy: 0,
 });
+
+const EMPTY_BUCKETS = (): Record<LeadBucket, BucketStats> => {
+  const buckets = {} as Record<LeadBucket, BucketStats>;
+  for (const b of LEAD_BUCKETS) buckets[b] = emptyBucket();
+  return buckets;
+};
 
 export function emptyAccuracyStats(): AccuracyStats {
   return {
@@ -68,13 +96,6 @@ export function emptyAccuracyStats(): AccuracyStats {
     overallAccuracy: 0,
     buckets: EMPTY_BUCKETS(),
   };
-}
-
-/** Konwersja lokalnego czasu Warsaw (YYYY-MM-DDTHH:00) na Date UTC. */
-export function warsawLocalToDate(isoLocal: string): Date {
-  const date = tryWarsawLocalToDate(isoLocal);
-  if (!date) throw new Error(`Nieprawidłowy czas Warsaw: ${isoLocal}`);
-  return date;
 }
 
 /** Bezpieczna wersja — zwraca null zamiast rzucać. */
@@ -126,7 +147,26 @@ export function leadBucket(leadHours: number): LeadBucket | null {
   if (leadHours < 36) return "day1";
   if (leadHours < 60) return "day2";
   if (leadHours < 84) return "day3";
+  if (leadHours < 108) return "day4";
+  if (leadHours < 132) return "day5";
+  if (leadHours < 156) return "day6";
+  if (leadHours < 180) return "day7";
+  if (leadHours <= MAX_LEAD_HOURS) return "week2";
   return null;
+}
+
+/** Uzupełnia brakujące koszyki w starszych statystykach (np. sprzed rozszerzenia do 14 dni). */
+export function normalizeAccuracyStats(stats: AccuracyStats): AccuracyStats {
+  const buckets = EMPTY_BUCKETS();
+  for (const b of LEAD_BUCKETS) {
+    const existing = stats.buckets[b];
+    if (existing) buckets[b] = { ...existing };
+  }
+  return {
+    ...stats,
+    buckets,
+    overallAccuracy: overallAccuracyFromBuckets(buckets),
+  };
 }
 
 function hashSeed(input: string): number {
@@ -156,7 +196,7 @@ export function sampleArchiveHours(forecast: Forecast): PendingVerification[] {
     bucket: LeadBucket;
   }[] = [];
 
-  for (const day of forecast.days.slice(0, 3)) {
+  for (const day of forecast.days) {
     for (const hour of day.hours) {
       if (!hour.time.startsWith(day.date)) continue;
       const leadHours = computeLeadHours(forecast.generatedAt, hour.time);
@@ -261,7 +301,7 @@ export function updateAccuracyStats(
   stats: AccuracyStats,
   pair: VerifiedPair,
 ): AccuracyStats {
-  const buckets = { ...stats.buckets };
+  const buckets = { ...normalizeAccuracyStats(stats).buckets };
   const bucket = { ...buckets[pair.leadBucket] };
   bucket.count += 1;
   bucket.tempMaeSum += pair.tempError;
@@ -280,17 +320,6 @@ export function updateAccuracyStats(
     overallAccuracy: overallAccuracyFromBuckets(buckets),
     byLocation: stats.byLocation,
   };
-}
-
-export function updateGlobalByLocation(
-  global: AccuracyStats,
-  locationId: string,
-  locationAccuracy: number,
-  locationCount: number,
-): AccuracyStats {
-  const byLocation = { ...(global.byLocation ?? {}) };
-  byLocation[locationId] = { count: locationCount, accuracy: locationAccuracy };
-  return { ...global, byLocation };
 }
 
 export function buildVerifiedPair(
@@ -381,6 +410,16 @@ export function leadBucketLabel(bucket: LeadBucket): string {
       return "36–60 h (2 dni)";
     case "day3":
       return "60–84 h (3 dni)";
+    case "day4":
+      return "84–108 h (4 dni)";
+    case "day5":
+      return "108–132 h (5 dni)";
+    case "day6":
+      return "132–156 h (6 dni)";
+    case "day7":
+      return "156–180 h (7 dni)";
+    case "week2":
+      return "180–336 h (8–14 dni)";
   }
 }
 

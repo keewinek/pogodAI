@@ -1,5 +1,3 @@
-import { tryWarsawLocalToDate } from "./verification.ts";
-
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
 const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -70,14 +68,4 @@ export async function fetchHourlyObservations(
   } finally {
     clearTimeout(timeout);
   }
-}
-
-/** Czy obserwacja dla validTime jest już dostępna (godzina minęła). */
-export function observationShouldExist(
-  validTime: string,
-  now = new Date(),
-): boolean {
-  const validDate = tryWarsawLocalToDate(validTime);
-  if (!validDate) return false;
-  return now.getTime() >= validDate.getTime() + 3_600_000;
 }

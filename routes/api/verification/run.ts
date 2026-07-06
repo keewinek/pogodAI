@@ -3,13 +3,13 @@ import {
   deletePendingVerification,
   getAccuracyStats,
   getVerifiedPair,
+  json,
   listLocations,
   listPendingVerifications,
   rebuildGlobalAccuracyStats,
   saveVerifiedPair,
   setAccuracyStats,
 } from "@/lib/db.ts";
-import { json } from "@/lib/db.ts";
 import { fetchHourlyObservations } from "@/lib/observations.ts";
 import {
   buildVerifiedPair,

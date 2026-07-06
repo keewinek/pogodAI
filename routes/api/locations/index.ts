@@ -1,6 +1,6 @@
 import { define } from "@/utils.ts";
 import { addLocation, errorJson, json, listLocations } from "@/lib/db.ts";
-import { slugify, validateNewLocation } from "@/lib/validate.ts";
+import { generateLocationId, validateNewLocation } from "@/lib/validate.ts";
 
 export const handler = define.handlers({
   async GET() {
@@ -19,7 +19,11 @@ export const handler = define.handlers({
     const parsed = validateNewLocation(body);
     if (!parsed.ok) return errorJson(parsed.error, 400);
 
-    const id = slugify(parsed.value.name);
+    const locations = await listLocations();
+    const id = generateLocationId(
+      parsed.value.name,
+      locations.map((l) => l.id),
+    );
     if (!id) {
       return errorJson("Nie udało się utworzyć id z podanej nazwy.", 400);
     }

@@ -1,3 +1,17 @@
+import type {
+  AccuracyStats,
+  PendingVerification,
+  VerifiedPair,
+} from "./verification.ts";
+import {
+  bucketAccuracyFromSums,
+  emptyAccuracyStats,
+  LEAD_BUCKETS,
+  MAX_VERIFIED_HISTORY,
+  overallAccuracyFromBuckets,
+  sampleArchiveHours,
+} from "./verification.ts";
+
 export interface Location {
   id: string;
   name: string;
@@ -39,17 +53,6 @@ export interface Forecast {
   verdict: Verdict;
   days: DayForecast[];
 }
-
-import type {
-  AccuracyStats,
-  PendingVerification,
-  VerifiedPair,
-} from "./verification.ts";
-import {
-  emptyAccuracyStats,
-  MAX_VERIFIED_HISTORY,
-  sampleArchiveHours,
-} from "./verification.ts";
 
 const LOCATIONS_KEY = ["locations"];
 const FORECAST_KEY = "forecast";
@@ -229,10 +232,12 @@ export async function countForecasts(locationIds: string[]): Promise<{
   newestForecastAt: string | null;
 }> {
   const kv = await getKv();
+  const results = await Promise.all(
+    locationIds.map((id) => kv.get<Forecast>([FORECAST_KEY, id])),
+  );
   let forecasts = 0;
   let newest: string | null = null;
-  for (const id of locationIds) {
-    const res = await kv.get<Forecast>([FORECAST_KEY, id]);
+  for (const res of results) {
     if (res.value) {
       forecasts++;
       if (!newest || res.value.generatedAt > newest) {
@@ -256,37 +261,35 @@ export async function getForecastStatus(): Promise<ForecastLocationStatus[]> {
   const locations = await listLocations();
   const kv = await getKv();
   const now = Date.now();
-  const result: ForecastLocationStatus[] = [];
+  const results = await Promise.all(
+    locations.map((loc) => kv.get<Forecast>([FORECAST_KEY, loc.id])),
+  );
 
-  for (const loc of locations) {
-    const res = await kv.get<Forecast>([FORECAST_KEY, loc.id]);
-    const forecast = res.value;
+  return locations.map((loc, i) => {
+    const forecast = results[i].value;
     if (!forecast) {
-      result.push({
+      return {
         locationId: loc.id,
         name: loc.name,
         hasForecast: false,
         generatedAt: null,
         ageMinutes: null,
         sourceCount: null,
-      });
-      continue;
+      };
     }
     const ageMs = now - Date.parse(forecast.generatedAt);
     const ageMinutes = Number.isFinite(ageMs)
       ? Math.max(0, Math.round(ageMs / 60_000))
       : null;
-    result.push({
+    return {
       locationId: loc.id,
       name: loc.name,
       hasForecast: true,
       generatedAt: forecast.generatedAt,
       ageMinutes,
       sourceCount: forecast.sources.length,
-    });
-  }
-
-  return result;
+    };
+  });
 }
 
 export function json(
@@ -426,14 +429,15 @@ export async function getAllLocationAccuracyStats(): Promise<
   { locationId: string; stats: AccuracyStats }[]
 > {
   const locations = await listLocations();
-  const result: { locationId: string; stats: AccuracyStats }[] = [];
-  for (const loc of locations) {
-    const stats = await getAccuracyStats(loc.id);
-    if (stats && stats.totalPairs > 0) {
-      result.push({ locationId: loc.id, stats });
-    }
-  }
-  return result;
+  const results = await Promise.all(
+    locations.map(async (loc) => {
+      const stats = await getAccuracyStats(loc.id);
+      return stats && stats.totalPairs > 0
+        ? { locationId: loc.id, stats }
+        : null;
+    }),
+  );
+  return results.filter((x): x is NonNullable<typeof x> => x !== null);
 }
 
 export async function rebuildGlobalAccuracyStats(): Promise<AccuracyStats> {
@@ -450,7 +454,7 @@ export async function rebuildGlobalAccuracyStats(): Promise<AccuracyStats> {
       count: stats.totalPairs,
       accuracy: stats.overallAccuracy,
     };
-    for (const bucketKey of ["hourly", "day1", "day2", "day3"] as const) {
+    for (const bucketKey of LEAD_BUCKETS) {
       const src = stats.buckets[bucketKey];
       const dst = global.buckets[bucketKey];
       dst.count += src.count;
@@ -460,27 +464,14 @@ export async function rebuildGlobalAccuracyStats(): Promise<AccuracyStats> {
     global.totalPairs += stats.totalPairs;
   }
 
-  for (const bucketKey of ["hourly", "day1", "day2", "day3"] as const) {
+  for (const bucketKey of LEAD_BUCKETS) {
     const b = global.buckets[bucketKey];
     if (b.count > 0) {
-      const mae = b.tempMaeSum / b.count;
-      const avgBrier = b.brierSum / b.count;
-      const tempScore = Math.max(0, 100 - mae * 10);
-      const precipScore = (1 - avgBrier) * 100;
-      b.accuracy = (tempScore + precipScore) / 2;
+      b.accuracy = bucketAccuracyFromSums(b.count, b.tempMaeSum, b.brierSum);
     }
   }
 
-  let weightedSum = 0;
-  let totalCount = 0;
-  for (const bucketKey of ["hourly", "day1", "day2", "day3"] as const) {
-    const b = global.buckets[bucketKey];
-    if (b.count > 0) {
-      weightedSum += b.accuracy * b.count;
-      totalCount += b.count;
-    }
-  }
-  global.overallAccuracy = totalCount > 0 ? weightedSum / totalCount : 0;
+  global.overallAccuracy = overallAccuracyFromBuckets(global.buckets);
   global.updatedAt = new Date().toISOString();
   global.byLocation = byLocation;
   await setAccuracyStats(GLOBAL_ACCURACY_ID, global);
@@ -503,32 +494,4 @@ export async function countVerifiedPairs(): Promise<number> {
     count++;
   }
   return count;
-}
-
-/** Usuwa całą historię weryfikacji (pending, done, statystyki). */
-export async function clearAllVerificationData(): Promise<{
-  pending: number;
-  verified: number;
-  stats: number;
-}> {
-  const kv = await getKv();
-  let pending = 0;
-  let verified = 0;
-  let stats = 0;
-
-  for await (const entry of kv.list({ prefix: [VERIFY_PENDING_KEY] })) {
-    await kv.delete(entry.key);
-    pending++;
-  }
-  for await (const entry of kv.list({ prefix: [VERIFY_DONE_KEY] })) {
-    await kv.delete(entry.key);
-    verified++;
-  }
-  for await (const entry of kv.list({ prefix: [ACCURACY_STATS_KEY] })) {
-    await kv.delete(entry.key);
-    stats++;
-  }
-
-  await setAccuracyStats(GLOBAL_ACCURACY_ID, emptyAccuracyStats());
-  return { pending, verified, stats };
 }

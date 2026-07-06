@@ -32,16 +32,14 @@ export const handler = define.handlers({
     }
 
     try {
+      await setForecast(parsed.value);
       await archivePendingVerifications(parsed.value);
     } catch (err) {
       return errorJson(
-        err instanceof Error
-          ? err.message
-          : "Nie udało się zarchiwizować próbek weryfikacji.",
-        400,
+        err instanceof Error ? err.message : "Nie udało się zapisać prognozy.",
+        500,
       );
     }
-    await setForecast(parsed.value);
     return json({ ok: true });
   },
 });

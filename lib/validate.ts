@@ -13,6 +13,32 @@ export function slugify(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/** Id kolidujące ze statycznymi trasami Fresh. */
+export const RESERVED_LOCATION_IDS = new Set([
+  "lokalizacje",
+  "sprawdzalnosc",
+  "api",
+]);
+
+export function generateLocationId(
+  name: string,
+  existingIds: Iterable<string>,
+): string | null {
+  const base = slugify(name);
+  if (!base || RESERVED_LOCATION_IDS.has(base)) return null;
+
+  const taken = new Set(existingIds);
+  if (!taken.has(base)) return base;
+
+  for (let n = 2; n < 100; n++) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate) && !RESERVED_LOCATION_IDS.has(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
