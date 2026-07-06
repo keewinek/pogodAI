@@ -270,8 +270,8 @@ body {
 }
 
 .verdict-text {
-  font-size: 17px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.5;
   font-weight: 500;
   color: var(--text-primary);
 }

@@ -52,7 +52,7 @@ export function VerdictCard({ verdict }: { verdict: Verdict }) {
   return (
     <section class="grouped px-5 py-4">
       <div class="verdict-accent">
-        <p class="text-[17px] leading-relaxed font-medium verdict-text">
+        <p class="verdict-text">
           {verdict.text}
         </p>
       </div>
