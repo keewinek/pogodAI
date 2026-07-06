@@ -1,5 +1,6 @@
 import { useMemo, useState } from "preact/hooks";
 import type { DayForecast } from "../lib/types.ts";
+import { dayTemps } from "../lib/forecast-utils.ts";
 import { HourlyStrip } from "../components/HourlyStrip.tsx";
 
 function tempBarStyle(
@@ -24,11 +25,10 @@ export default function DailyAccordion(
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   const { globalMin, globalMax } = useMemo(() => {
-    const mins = days.map((d) => d.tempMin);
-    const maxs = days.map((d) => d.tempMax);
+    const ranges = days.map((d) => dayTemps(d));
     return {
-      globalMin: Math.min(...mins),
-      globalMax: Math.max(...maxs),
+      globalMin: Math.min(...ranges.map((r) => r.min)),
+      globalMax: Math.max(...ranges.map((r) => r.max)),
     };
   }, [days]);
 
@@ -37,9 +37,10 @@ export default function DailyAccordion(
       {days.map((day, i) => {
         const open = openIdx === i;
         const isToday = labels[i] === "Dziś";
+        const { min: tempMin, max: tempMax } = dayTemps(day);
         const bar = tempBarStyle(
-          day.tempMin,
-          day.tempMax,
+          tempMin,
+          tempMax,
           globalMin,
           globalMax,
         );
@@ -65,7 +66,7 @@ export default function DailyAccordion(
 
               <div class="flex-1 flex items-center gap-2 min-w-0 mx-1">
                 <span class="text-[15px] muted tabular-nums w-7 text-right shrink-0">
-                  {Math.round(day.tempMin)}°
+                  {Math.round(tempMin)}°
                 </span>
                 <div class="temp-range-track flex-1 min-w-[3rem]">
                   <div
@@ -74,7 +75,7 @@ export default function DailyAccordion(
                   />
                 </div>
                 <span class="text-[15px] tabular-nums w-7 shrink-0">
-                  {Math.round(day.tempMax)}°
+                  {Math.round(tempMax)}°
                 </span>
               </div>
 
@@ -91,7 +92,7 @@ export default function DailyAccordion(
               />
             </button>
             {open && (
-              <div class="px-4 pb-4 pt-2 border-t border-white/[0.06] bg-black/10">
+              <div class="px-4 pb-4 pt-2 border-t border-white/[0.08]">
                 <p class="text-[15px] muted-strong leading-relaxed mb-4">
                   {day.summary}
                 </p>

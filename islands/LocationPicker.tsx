@@ -57,7 +57,7 @@ export default function LocationPicker(
       </button>
 
       {open && (
-        <div class="absolute top-full mt-2 z-20 w-72 max-w-[90vw] grouped py-1 shadow-2xl shadow-black/40">
+        <div class="absolute top-full mt-2 z-20 w-72 max-w-[90vw] grouped py-1">
           {locations.map((l) => (
             <button
               key={l.id}

@@ -1,7 +1,7 @@
 import type { DayForecast, HourForecast } from "./types.ts";
 
 /**
- * Godziny do paska "Najbliższe godziny": dziś od bieżącej godziny;
+ * Godziny do paska „Godzinowa”: dziś od bieżącej godziny;
  * jeśli zostało < 6 wpisów, doklej początek jutra. Maks. 24 wpisy.
  */
 export function upcomingHours(
@@ -23,6 +23,20 @@ export function upcomingHours(
     if (tomorrow) result.push(...tomorrow.hours.slice(0, 8));
   }
   return result.slice(0, 24);
+}
+
+/** Min/max z godzin, gdy agent nie wypełnił tempMin/tempMax. */
+export function dayTemps(day: DayForecast): { min: number; max: number } {
+  const hasDayRange = day.tempMax > day.tempMin ||
+    (day.tempMin !== 0 && day.tempMax !== 0);
+  if (hasDayRange) {
+    return { min: day.tempMin, max: day.tempMax };
+  }
+  if (day.hours.length === 0) {
+    return { min: day.tempMin, max: day.tempMax };
+  }
+  const temps = day.hours.map((h) => h.temperature);
+  return { min: Math.min(...temps), max: Math.max(...temps) };
 }
 
 /** "2026-07-05T15:00" → "15:00" */
