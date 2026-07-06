@@ -70,6 +70,8 @@ export const PRECIP_CHANCE_RAIN_THRESHOLD = 50;
 export const MIN_LEAD_HOURS = 6;
 /** 14 dni × 24 h — zgodnie z długością prognozy w days[]. */
 export const MAX_LEAD_HOURS = 336;
+/** Bufor na opóźnioną weryfikację — pobieranie obserwacji Open-Meteo. */
+export const OBSERVATION_HOURS_BACK = MAX_LEAD_HOURS + 48;
 /** Jedna zamrożona próbka na koszyk horyzontu (stratyfikacja). */
 export const SAMPLE_HOURS_PER_FORECAST = LEAD_BUCKETS.length;
 export const STALE_PENDING_DAYS = 7;

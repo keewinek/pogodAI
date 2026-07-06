@@ -4,9 +4,14 @@ import type {
   VerifiedPair,
 } from "./verification.ts";
 import {
+  emptyAccuracyStats,
   LEAD_BUCKETS,
   leadBucketLabel,
+  MAX_LEAD_HOURS,
+  MIN_LEAD_HOURS,
+  PRECIP_RAIN_THRESHOLD_MM,
   PRELIMINARY_PAIR_THRESHOLD,
+  SAMPLE_HOURS_PER_FORECAST,
 } from "./verification.ts";
 
 export interface AccuracyBucketBrief {
@@ -110,11 +115,19 @@ export function buildAccuracyInsights(
   }
 
   if (weakestBucket && weakestAccuracy !== null && weakestAccuracy < 70) {
-    hints.push(
-      `Słabszy horyzont ${leadBucketLabel(weakestBucket)} (${
-        round2(weakestAccuracy)
-      }%) — przy syntezie daj większą wagę modelom numerycznym i lokalnym (IMGW) w tym zakresie.`,
-    );
+    if (weakestBucket === "week2") {
+      hints.push(
+        `Słabszy horyzont ${leadBucketLabel(weakestBucket)} (${
+          round2(weakestAccuracy)
+        }%) — to oczekiwane przy 8–14 dniach; w werdykcie podkreślaj niepewność zamiast fałszywej precyzji dziennej.`,
+      );
+    } else {
+      hints.push(
+        `Słabszy horyzont ${leadBucketLabel(weakestBucket)} (${
+          round2(weakestAccuracy)
+        }%) — przy syntezie daj większą wagę modelom numerycznym i lokalnym (IMGW) w tym zakresie.`,
+      );
+    }
   }
 
   const pairs = recentPairs.slice(0, 20);
@@ -208,17 +221,7 @@ export function buildLocationAccuracyBrief(
   const hasData = stats !== null && stats.totalPairs > 0;
   const preliminary = hasData &&
     stats!.totalPairs < PRELIMINARY_PAIR_THRESHOLD;
-  const emptyBuckets = bucketBriefs({
-    updatedAt: "",
-    totalPairs: 0,
-    overallAccuracy: 0,
-    buckets: {
-      hourly: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-      day1: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-      day2: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-      day3: { count: 0, tempMaeSum: 0, brierSum: 0, accuracy: 0 },
-    },
-  });
+  const emptyBuckets = bucketBriefs(emptyAccuracyStats());
 
   if (!hasData) {
     return {
@@ -282,9 +285,9 @@ export function buildGlobalAccuracyBrief(
         (stats?.totalPairs ?? 0) < PRELIMINARY_PAIR_THRESHOLD,
     })),
     methodology: {
-      sampleHoursPerForecast: 4,
-      minLeadHours: 6,
-      maxLeadHours: 84,
+      sampleHoursPerForecast: SAMPLE_HOURS_PER_FORECAST,
+      minLeadHours: MIN_LEAD_HOURS,
+      maxLeadHours: MAX_LEAD_HOURS,
       tempScoreFormula: "max(0, 100 - |błąd°C| × 10)",
       precipRainThresholdMm: 0.1,
       precipChanceRainThreshold: 50,

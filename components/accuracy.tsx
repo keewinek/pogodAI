@@ -6,6 +6,7 @@ import {
   leadBucketLabel,
   PRECIP_RAIN_THRESHOLD_MM,
   PRELIMINARY_PAIR_THRESHOLD,
+  SAMPLE_HOURS_PER_FORECAST,
 } from "../lib/verification.ts";
 import { relativeTime } from "../lib/display.ts";
 import { AccuracyFilter } from "../islands/AccuracyFilter.tsx";
@@ -65,10 +66,14 @@ export function AccuracyMethodology() {
         <p>
           Przy każdej prognozie zapisujemy{" "}
           <strong class="text-white/80">
-            4 losowe godziny
+            {SAMPLE_HOURS_PER_FORECAST} losowych godzin
           </strong>{" "}
-          z najbliższych 3 dni (freeze-at-issue — zanim prognoza zostanie
-          nadpisana).
+          rozłożonych stratyfikowanie po horyzoncie 0–14 dni (freeze-at-issue —
+          zanim prognoza zostanie nadpisana).
+        </p>
+        <p class="mt-3">
+          Koszyki czasowe mają rosnącą szerokość: dni 1–7 osobno, dni 8–14
+          łącznie — zgodnie ze spadkiem skillu prognozy numerycznej (WMO/NWP).
         </p>
         <p class="mt-3">
           Po upływie danej godziny porównujemy z{" "}

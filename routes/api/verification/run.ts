@@ -17,6 +17,7 @@ import {
   isPendingStale,
   isReadyForVerification,
   isValidObservation,
+  OBSERVATION_HOURS_BACK,
   updateAccuracyStats,
 } from "@/lib/verification.ts";
 
@@ -62,7 +63,7 @@ export const handler = define.handlers({
         const observations = await fetchHourlyObservations(
           location.lat,
           location.lon,
-          96,
+          OBSERVATION_HOURS_BACK,
         );
         if (!observations) {
           errors.push(`Open-Meteo niedostępne dla ${location.id}`);

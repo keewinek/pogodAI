@@ -8,6 +8,7 @@ import {
   emptyAccuracyStats,
   LEAD_BUCKETS,
   MAX_VERIFIED_HISTORY,
+  normalizeAccuracyStats,
   overallAccuracyFromBuckets,
   sampleArchiveHours,
 } from "./verification.ts";
@@ -410,7 +411,7 @@ export async function getAccuracyStats(
 ): Promise<AccuracyStats | null> {
   const kv = await getKv();
   const res = await kv.get<AccuracyStats>([ACCURACY_STATS_KEY, id]);
-  return res.value;
+  return res.value ? normalizeAccuracyStats(res.value) : null;
 }
 
 export async function getGlobalAccuracyStats(): Promise<AccuracyStats> {
