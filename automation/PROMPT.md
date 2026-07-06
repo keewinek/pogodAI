@@ -129,7 +129,7 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 - `time` w strefie Europe/Warsaw.
 - Emoji w `hours[]` z `weather_code` (WMO). Aplikacja wybiera ikonę wg
   hierarchii: **burza → deszcz → wiatr (≥ 60 km/h) → pochmurno → słońce** (w
-  nocy słońce → księżyc).
+  nocy bez opadów: pochmurno i słońce → księżyc).
 - Emoji tylko: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨 🌪️
 - Liczby całkowite: °C, km/h, %.
 - Nie cytuj całych stron — wyciągaj liczby i wnioski.
