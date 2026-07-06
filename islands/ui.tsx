@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { DayForecast, Location } from "../lib/db.ts";
-import { dayPrecip, daySummary, dayTemps, dayWind } from "../lib/display.ts";
+import {
+  dayPrecip,
+  daySummary,
+  dayTemps,
+  dayWind,
+  displayEmoji,
+  warsawHour,
+} from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
@@ -162,6 +169,7 @@ export function DailyAccordion(
   }: { days: DayForecast[]; labels: string[]; todayDate: string },
 ) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const currentHour = warsawHour();
   const { globalMin, globalMax } = useMemo(() => {
     const ranges = days.map((d) => dayTemps(d));
     return {
@@ -178,6 +186,9 @@ export function DailyAccordion(
         const precip = dayPrecip(day);
         const wind = dayWind(day);
         const bar = tempBarStyle(tempMin, tempMax, globalMin, globalMax);
+        const rowEmoji = day.date === todayDate
+          ? displayEmoji(day.emoji, currentHour)
+          : day.emoji;
         return (
           <div key={day.date}>
             <button
@@ -195,7 +206,7 @@ export function DailyAccordion(
                 class="text-[20px] leading-none select-none shrink-0"
                 aria-hidden="true"
               >
-                {day.emoji}
+                {rowEmoji}
               </span>
               <div class="flex-1 flex items-center gap-2 min-w-0 mx-1">
                 <span class="text-[15px] muted tabular-nums w-7 text-right shrink-0">

@@ -2,23 +2,28 @@ import type { HourForecast, Verdict } from "../lib/db.ts";
 import {
   ageMinutes,
   conditionLabel,
+  displayEmoji,
   hourLabel,
   relativeTime,
 } from "../lib/display.ts";
 
-export function Hero({ verdict }: { verdict: Verdict }) {
-  const label = conditionLabel(verdict.emoji);
+export function Hero(
+  { verdict, hour }: { verdict: Verdict; hour: number },
+) {
+  const emoji = displayEmoji(verdict.emoji, hour);
+  const label = conditionLabel(emoji);
+  const labelClass = label === "Słonecznie"
+    ? "text-amber-100/90"
+    : label === "Pogodna noc"
+    ? "text-indigo-200/80"
+    : "";
   return (
     <section class="flex flex-col items-center pt-2 pb-1 text-center">
-      <p
-        class={`hero-condition ${
-          label === "Słonecznie" ? "text-amber-100/90" : ""
-        }`}
-      >
+      <p class={`hero-condition ${labelClass}`}>
         {label}
       </p>
       <div class="hero-emoji mt-3 mb-1 select-none" aria-hidden="true">
-        {verdict.emoji}
+        {emoji}
       </div>
       <div class="temp-hero">{Math.round(verdict.temperature)}°</div>
       <div class="stat-chip w-full max-w-[18rem]">
@@ -70,6 +75,8 @@ export function HourlyStrip(
       <div class={`flex w-max ${embedded ? "gap-0" : "gap-1 px-1"}`}>
         {hours.map((h, i) => {
           const isNow = !embedded && i === 0;
+          const hour = parseInt(h.time.slice(11, 13), 10);
+          const emoji = displayEmoji(h.emoji, hour);
           return (
             <div
               key={h.time}
@@ -85,7 +92,7 @@ export function HourlyStrip(
                 {isNow ? "Teraz" : hourLabel(h.time)}
               </span>
               <span class="text-[24px] leading-none" aria-hidden="true">
-                {h.emoji}
+                {emoji}
               </span>
               <span class="text-[16px] font-semibold tabular-nums">
                 {Math.round(h.temperature)}°

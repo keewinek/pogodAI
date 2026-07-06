@@ -50,8 +50,30 @@ const THEMES: Record<string, Theme> = {
 
 export const DEFAULT_THEME = THEMES.night;
 
+export function isNightHour(hour: number): boolean {
+  return hour >= 22 || hour < 6;
+}
+
+function isPrecipEmoji(emoji: string): boolean {
+  return emoji.includes("🌧") || emoji.includes("⛈") ||
+    emoji.includes("🌩") || emoji.includes("🌨") || emoji.includes("❄") ||
+    emoji.includes("☔") || emoji.includes("🌦");
+}
+
+function isSunEmoji(emoji: string): boolean {
+  return emoji.includes("☀") || emoji.includes("🌤");
+}
+
+/** Emoji do wyświetlenia — w nocy słońce → księżyc; opady bez zmian. */
+export function displayEmoji(emoji: string, hour: number): string {
+  if (!isNightHour(hour)) return emoji;
+  if (isPrecipEmoji(emoji)) return emoji;
+  if (isSunEmoji(emoji)) return "🌙";
+  return emoji;
+}
+
 export function themeFor(emoji: string | undefined, hour: number): Theme {
-  const isNight = hour >= 22 || hour < 6;
+  const isNight = isNightHour(hour);
   if (isNight) return THEMES.night;
   if (!emoji) return THEMES.cloudy;
   if (emoji.includes("⛈") || emoji.includes("🌩")) return THEMES.storm;
@@ -81,6 +103,7 @@ export function conditionLabel(emoji: string): string {
   if (emoji.includes("🌨") || emoji.includes("❄")) return "Śnieg";
   if (emoji.includes("🌫")) return "Mgła";
   if (emoji.includes("💨")) return "Wietrznie";
+  if (emoji.includes("🌙")) return "Pogodna noc";
   if (emoji.includes("☀")) return "Słonecznie";
   if (emoji.includes("🌤")) return "Lekko zachmurzone";
   if (emoji.includes("⛅")) return "Pochmurno";

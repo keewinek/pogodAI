@@ -58,7 +58,7 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
         )
         : (
           <>
-            <Hero verdict={forecast.verdict} />
+            <Hero verdict={forecast.verdict} hour={warsawHour()} />
             <VerdictCard verdict={forecast.verdict} />
             <section>
               <h2 class="section-label">Godzinowa</h2>
