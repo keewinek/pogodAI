@@ -9,6 +9,7 @@ import {
 } from "../lib/rain-radar.ts";
 
 const FRAME_DELAY_MS = 450;
+const MAP_LOAD_TIMEOUT_MS = 15_000;
 const MAPLIBRE_CSS = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
 const MAPLIBRE_JS = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
 const OM_LAYER_JS =
@@ -63,6 +64,7 @@ type MapApi = {
   removeLayer: (id: string) => void;
   removeSource: (id: string) => void;
   isStyleLoaded: () => boolean;
+  setCenter: (center: [number, number]) => void;
   resize: () => void;
   remove: () => void;
 };
@@ -185,10 +187,21 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
         });
 
         mapInstance.current = map;
+        const loadTimeout = window.setTimeout(() => {
+          if (!cancelled) {
+            setError("Nie udało się załadować mapy radaru.");
+          }
+        }, MAP_LOAD_TIMEOUT_MS);
         map.on("load", () => {
           if (cancelled) return;
+          clearTimeout(loadTimeout);
           setMapReady(true);
           map.resize();
+        });
+        map.on("error", () => {
+          if (cancelled) return;
+          clearTimeout(loadTimeout);
+          setError("Nie udało się załadować mapy radaru.");
         });
       } catch {
         if (!cancelled) setError("Nie udało się załadować mapy radaru.");
@@ -199,6 +212,12 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
       cancelled = true;
     };
   }, [frames, lat, lon]);
+
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !mapReady) return;
+    map.setCenter([lon, lat]);
+  }, [lat, lon, mapReady]);
 
   useEffect(() => {
     const frame = frames[idx];

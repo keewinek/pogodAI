@@ -3,6 +3,17 @@ export const RAINVIEWER_API =
 export const OM_META_URL =
   "https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=precipitation";
 export const FORECAST_HOURS = 12;
+const FETCH_TIMEOUT_MS = 15_000;
+
+async function fetchWithTimeout(url: string): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 export interface RadarTileFrame {
   kind: "radar";
@@ -36,17 +47,18 @@ export function radarImageCoordinates(
   zoom = 7,
   sizePx = 512,
 ): [number, number][] {
+  const clampedLat = Math.max(-85, Math.min(85, lat));
   const half = sizePx / 2;
-  const scale = 156543.03392 * Math.cos((lat * Math.PI) / 180) /
+  const scale = 156543.03392 * Math.cos((clampedLat * Math.PI) / 180) /
     Math.pow(2, zoom);
-  const dLon = ((half * scale) /
-    (6378137 * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
+  const cosLat = Math.max(Math.cos((clampedLat * Math.PI) / 180), 0.01);
+  const dLon = ((half * scale) / (6378137 * cosLat)) * (180 / Math.PI);
   const dLat = ((half * scale) / 6378137) * (180 / Math.PI);
   return [
-    [lon - dLon, lat + dLat],
-    [lon + dLon, lat + dLat],
-    [lon + dLon, lat - dLat],
-    [lon - dLon, lat - dLat],
+    [lon - dLon, clampedLat + dLat],
+    [lon + dLon, clampedLat + dLat],
+    [lon + dLon, clampedLat - dLat],
+    [lon - dLon, clampedLat - dLat],
   ];
 }
 
@@ -71,7 +83,7 @@ export function buildForecastFrames(
   const frames: ForecastTileFrame[] = [];
   for (let i = 0; i < validTimes.length && frames.length < maxFrames; i++) {
     const unix = Math.floor(Date.parse(validTimes[i]) / 1000);
-    if (unix <= afterUnix) continue;
+    if (!Number.isFinite(unix) || unix <= afterUnix) continue;
     frames.push({ kind: "forecast", time: unix, timeStep: `valid_times_${i}` });
   }
   return frames;
@@ -82,12 +94,17 @@ export async function loadRainFrames(): Promise<{
   frames: RainFrame[];
 }> {
   const [rvRes, omRes] = await Promise.all([
-    fetch(RAINVIEWER_API),
-    fetch(OM_META_URL),
+    fetchWithTimeout(RAINVIEWER_API),
+    fetchWithTimeout(OM_META_URL),
   ]);
   if (!rvRes.ok) throw new Error("rainviewer");
 
-  const rv = await rvRes.json() as RainViewerManifest;
+  let rv: RainViewerManifest;
+  try {
+    rv = await rvRes.json() as RainViewerManifest;
+  } catch {
+    throw new Error("rainviewer-json");
+  }
   const past = rv?.radar?.past ?? [];
   const nowcast = rv?.radar?.nowcast ?? [];
   if (!past.length || !rv.host) throw new Error("empty");
@@ -100,14 +117,18 @@ export async function loadRainFrames(): Promise<{
 
   let forecastFrames: ForecastTileFrame[] = [];
   if (omRes.ok) {
-    const om = await omRes.json() as OmManifest;
-    if (om.valid_times?.length) {
-      const lastRadarTime = radarFrames[radarFrames.length - 1].time;
-      forecastFrames = buildForecastFrames(
-        om.valid_times,
-        lastRadarTime,
-        FORECAST_HOURS,
-      );
+    try {
+      const om = await omRes.json() as OmManifest;
+      if (om.valid_times?.length) {
+        const lastRadarTime = radarFrames[radarFrames.length - 1].time;
+        forecastFrames = buildForecastFrames(
+          om.valid_times,
+          lastRadarTime,
+          FORECAST_HOURS,
+        );
+      }
+    } catch {
+      // Prognoza opadów opcjonalna — zostaw sam radar.
     }
   }
 

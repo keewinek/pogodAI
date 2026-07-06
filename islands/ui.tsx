@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { DayForecast, Location } from "../lib/db.ts";
-import { dayEmoji, dayPrecip, dayTemps, dayWind } from "../lib/display.ts";
+import {
+  dayDateLabel,
+  dayEmoji,
+  dayPrecip,
+  dayTemps,
+  dayWind,
+} from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
@@ -167,7 +173,9 @@ export function DailyAccordion(
               onClick={() => setOpenIdx(open ? null : i)}
               class={`daily-row ${isToday ? "daily-row-today" : ""}`}
             >
-              <span class="daily-date">{labels[i]}</span>
+              <span class="daily-date">
+                {labels[i] ?? dayDateLabel(day.date)}
+              </span>
               <span class="daily-emoji" aria-hidden="true">{rowEmoji}</span>
               <span class="daily-temp-low">{Math.round(tempMin)}°</span>
               <span class="daily-temp-high">{Math.round(tempMax)}°</span>

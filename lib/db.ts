@@ -243,6 +243,52 @@ export async function countForecasts(locationIds: string[]): Promise<{
   return { forecasts, newestForecastAt: newest };
 }
 
+export interface ForecastLocationStatus {
+  locationId: string;
+  name: string;
+  hasForecast: boolean;
+  generatedAt: string | null;
+  ageMinutes: number | null;
+  sourceCount: number | null;
+}
+
+export async function getForecastStatus(): Promise<ForecastLocationStatus[]> {
+  const locations = await listLocations();
+  const kv = await getKv();
+  const now = Date.now();
+  const result: ForecastLocationStatus[] = [];
+
+  for (const loc of locations) {
+    const res = await kv.get<Forecast>([FORECAST_KEY, loc.id]);
+    const forecast = res.value;
+    if (!forecast) {
+      result.push({
+        locationId: loc.id,
+        name: loc.name,
+        hasForecast: false,
+        generatedAt: null,
+        ageMinutes: null,
+        sourceCount: null,
+      });
+      continue;
+    }
+    const ageMs = now - Date.parse(forecast.generatedAt);
+    const ageMinutes = Number.isFinite(ageMs)
+      ? Math.max(0, Math.round(ageMs / 60_000))
+      : null;
+    result.push({
+      locationId: loc.id,
+      name: loc.name,
+      hasForecast: true,
+      generatedAt: forecast.generatedAt,
+      ageMinutes,
+      sourceCount: forecast.sources.length,
+    });
+  }
+
+  return result;
+}
+
 export function json(
   body: unknown,
   status = 200,
