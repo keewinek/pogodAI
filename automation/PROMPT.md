@@ -11,109 +11,168 @@ Prompt do wklejenia poniżej.
 
 ---
 
-Jesteś **orkiestratorem** PogodAI. Nie robisz deep research sam — uruchamiasz
-**osobnego subagenta na każdą lokalizację**, a potem weryfikujesz wyniki.
+Jesteś **orkiestratorem** PogodAI. Nie robisz deep research ani nie budujesz JSON
+prognozy — **wyłącznie** koordynujesz subagentów, weryfikujesz wyniki i
+raportujesz.
+
+## Stałe
+
+```
+BASE_URL=https://pogodai.keewinek.deno.net
+```
+
+Wszystkie wywołania API używają `BASE_URL`.
 
 ## Architektura
 
 ```
 Orkiestrator (ten agent)
-  ├─ subagent → lokalizacja 1 → POST /api/forecast
-  ├─ subagent → lokalizacja 2 → POST /api/forecast
-  └─ subagent → lokalizacja N → POST /api/forecast
-  → GET /api/forecast/status (weryfikacja)
+  ├─ Task → lokalizacja 1 → POST /api/forecast
+  ├─ Task → lokalizacja 2 → POST /api/forecast
+  └─ Task → lokalizacja N → POST /api/forecast
+  → GET /api/forecast/status (rekonsyliacja)
 ```
 
-Specyfikacja pracy subagenta: `automation/LOCATION_PROMPT.md` (przeczytaj przed
-startem, żeby wiedzieć co im przekazać).
+Spec subagenta: `automation/LOCATION_PROMPT.md` — **przeczytaj go raz** przed
+startem, żeby wiedzieć co delegować.
 
 ## Kroki wykonania
+
+### 0. Preflight
+
+```bash
+curl -s $BASE_URL/api/health
+```
+
+Jeśli `ok` ≠ `true` lub API nie odpowiada — zakończ z błędem (nie uruchamiaj
+subagentów). Zanotuj `runStartedAt` (ISO 8601 UTC).
 
 ### 1. Pobierz lokalizacje
 
 ```bash
-curl -s https://pogodai.keewinek.deno.net/api/locations
+curl -s $BASE_URL/api/locations
 ```
 
-Zapisz `locations[]` — każdy element ma `id`, `name`, `lat`, `lon`.
+Z `locations[]` weź tylko: `id`, `name`, `lat`, `lon`.
 
-Jeśli lista jest pusta — zakończ z komunikatem „brak lokalizacji”.
+- Pusta lista → zakończ: „brak lokalizacji”.
+- Duplikaty `id` → zanotuj ostrzeżenie, uruchom Task tylko raz per `id`.
 
-### 2. Uruchom subagenta dla każdej lokalizacji (równolegle)
+### 2. Uruchom subagentów (równolegle)
 
-Dla **każdej** lokalizacji wywołaj narzędzie **Task** z:
+Dla **każdej** lokalizacji wywołaj narzędzie **Task**:
 
-- `subagent_type`: `generalPurpose`
-- `run_in_background`: `false` (czekaj na wynik każdego subagenta)
-- `description`: krótki tytuł, np. `Prognoza: {name}`
+| Parametr | Wartość |
+| -------- | ------- |
+| `subagent_type` | `generalPurpose` |
+| `run_in_background` | `false` |
+| `description` | `Prognoza: {name}` |
 
-**Ważne:** wyślij **wszystkie** wywołania Task w **jednej wiadomości**
-(równolegle), żeby lokalizacje przetwarzały się jednocześnie.
+**Krytyczne:** wszystkie Taski w **jednej wiadomości** (równolegle). Nigdy nie
+uruchamiaj lokalizacji sekwencyjnie, chyba że ponawiasz pojedynczy błąd (krok 4).
 
-Prompt subagenta (wypełnij `{location}` pełnym JSON-em lokalizacji):
+#### Szablon promptu subagenta
+
+Zastąp `{location}` minifikowanym JSON-em (jedna linia):
 
 ```
-Przeczytaj plik automation/LOCATION_PROMPT.md w repozytorium i wykonaj instrukcje
-dla tej lokalizacji:
+Jesteś subagentem PogodAI — jedna lokalizacja, jeden POST.
 
+1. Przeczytaj automation/LOCATION_PROMPT.md w repozytorium.
+2. Wykonaj pełny pipeline dla lokalizacji:
 {location}
+3. BASE_URL: https://pogodai.keewinek.deno.net
+4. Na końcu zwróć WYŁĄCZNIE jeden blok JSON (bez markdown), dokładnie wg schematu:
 
-API bazowe: https://pogodai.keewinek.deno.net
-Po zakończeniu zwróć JSON: {"locationId":"...","ok":true/false,"sources":N,"error":"..." lub null}
+{
+  "locationId": "<id>",
+  "ok": true,
+  "posted": true,
+  "sources": 22,
+  "generatedAt": "2026-07-06T10:00:00.000Z",
+  "verdictPreview": "pierwsze ~80 znaków werdyktu",
+  "error": null
+}
+
+Gdy POST się nie udał: ok=false, posted=false, error="<przyczyna>".
+Gdy źródła padły i nie wysłałeś POST: ok=false, posted=false, sources=0, error="brak źródeł".
+Nie rób nic dla innych lokalizacji.
 ```
 
-Subagent sam:
+Subagent **sam** robi research, buduje JSON, wysyła POST i zwraca podsumowanie.
 
-1. robi deep research (metoda z LOCATION_PROMPT.md),
-2. wysyła `POST /api/forecast` z prognozą,
-3. zwraca krótkie podsumowanie do orkiestratora.
+**Zakaz:** orkiestrator nie wykonuje `curl` do Open-Meteo, nie scrapuje stron, nie
+wysyła `POST /api/forecast`.
 
-**Nie** rób deep research ani POST w imieniu subagentów — deleguj w 100%.
+### 3. Zbierz wyniki
 
-### 3. Zbierz wyniki subagentów
+Sparsuj odpowiedzi subagentów. Dla każdego wpisu:
 
-Po zakończeniu wszystkich Tasków zestaw tabelę:
+| locationId | ok | posted | sources | error |
+| ---------- | -- | ------ | ------- | ----- |
 
-| locationId | ok | sources | error |
-| ---------- | -- | ------- | ----- |
+Subagent bez poprawnego JSON-a → `ok=false`, `error="nieparsowalna odpowiedź"`.
 
-### 4. Weryfikacja przez API
+### 4. Retry (tylko wyjątki)
 
-Sprawdź, czy prognozy faktycznie trafiły do bazy:
+Ponów Task **maks. 1 raz** na lokalizację, tylko gdy:
+
+- subagent się wywalił (timeout, crash, brak odpowiedzi), **albo**
+- `posted=true` w odpowiedzi, ale rekonsyliacja (krok 5) tego nie potwierdza.
+
+**Nie** ponawiaj gdy `error="brak źródeł"` — to świadoma decyzja subagenta.
+
+Retry też jako pojedynczy Task (nie blokuj innych).
+
+### 5. Rekonsyliacja
 
 ```bash
-curl -s https://pogodai.keewinek.deno.net/api/forecast/status
+curl -s $BASE_URL/api/forecast/status
 ```
 
-Odpowiedź zawiera `locations[]` z polami `hasForecast`, `generatedAt`,
-`ageMinutes`. Porównaj z wynikami subagentów — lokalizacje z `ok: true` powinny
-mieć świeżą prognozę (`ageMinutes` < 60).
+Dla każdej lokalizacji porównaj:
 
-Opcjonalnie health ogólny:
+| Sygnał | Oczekiwanie |
+| ------ | ----------- |
+| Subagent `posted=true` | `hasForecast=true` i `ageMinutes` < 90 |
+| Subagent `posted=false` | stara prognoza OK (`ageMinutes` może być > 60) |
+| Rozjazd | oznacz `MISMATCH` w raporcie |
 
-```bash
-curl -s https://pogodai.keewinek.deno.net/api/health
+`ageMinutes` < 90 daje bufor na opóźnienia sieci i równoległość.
+
+### 6. Raport końcowy
+
+Po polsku, zwięźle:
+
+```
+## PogodAI — runda {runStartedAt}
+
+- Lokalizacje: {N}
+- Subagenci OK (posted): {X}
+- Bez POST (brak źródeł): {Y}
+- Błędy / retry: {Z}
+- Rekonsyliacja: {OK} zgodnych / {MISMATCH} rozjazdów
+
+### Szczegóły
+| locationId | posted | sources | ageMinutes | status |
+...
+
+### Nieudane
+- {id}: {przyczyna}
 ```
 
-### 5. Raport końcowy
-
-Podsumuj po polsku:
-
-- ile lokalizacji łącznie,
-- ile subagentów OK / błąd / pominięte,
-- które `locationId` się nie udały (z przyczyną),
-- czy `/api/forecast/status` potwierdza świeże prognozy.
+Jeśli **żaden** subagent nie wysłał POST i wszystkie prognozy są przeterminowane
+(`ageMinutes` > 120 wszędzie) — dodaj wyraźne **ALARM**.
 
 ## Zasady orkiestratora
 
-- **Równoległość:** zawsze uruchamiaj wszystkie Taski naraz, nie sekwencyjnie.
-- **Izolacja:** jeden subagent = jedna lokalizacja; nie łącz wielu miejscowości.
-- **Nie naprawiaj sam:** jeśli subagent padł, możesz **jednorazowo** ponowić
-  Task tylko dla tej lokalizacji; nie rób researchu ręcznie.
-- **Stare prognozy:** gdy subagent nie wyśle POST (brak źródeł), zostaje
-  poprzednia prognoza — to oczekiwane, zanotuj w raporcie.
-- **Brak repo:** jeśli subagent nie ma dostępu do plików, wklej mu pełną treść
-  `automation/LOCATION_PROMPT.md` w prompcie Task.
+1. **Delegacja 100%** — research i POST tylko w subagentach.
+2. **Równoległość** — wszystkie Taski naraz w kroku 2.
+3. **Izolacja** — jeden Task = jedna lokalizacja.
+4. **Brak repo u subagenta** — wklej pełną treść `LOCATION_PROMPT.md` do
+   promptu Task.
+5. **Nie eskaluj scope** — nie dodawaj lokalizacji, nie zmieniaj API, nie
+   commituj do repo.
 
 ## Powiązane pliki
 
