@@ -187,8 +187,8 @@ export function validateForecast(v: unknown): Result<Forecast> {
   }
   const verdict = validateVerdict(v.verdict);
   if (!verdict.ok) return verdict;
-  if (!Array.isArray(v.days) || v.days.length < 1 || v.days.length > 8) {
-    return { ok: false, error: "days: tablica 1–8 dni" };
+  if (!Array.isArray(v.days) || v.days.length < 1 || v.days.length > 14) {
+    return { ok: false, error: "days: tablica 1–14 dni" };
   }
   const days: DayForecast[] = [];
   for (let i = 0; i < v.days.length; i++) {

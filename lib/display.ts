@@ -90,19 +90,25 @@ export function conditionLabel(emoji: string): string {
 
 // --- time ---
 
-const DAY_NAMES = ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."];
+const MONTHS_SHORT = [
+  "sty",
+  "lut",
+  "mar",
+  "kwi",
+  "maj",
+  "cze",
+  "lip",
+  "sie",
+  "wrz",
+  "paź",
+  "lis",
+  "gru",
+];
 
-function parseDate(date: string): Date {
-  return new Date(`${date}T12:00:00Z`);
-}
-
-export function dayLabel(date: string, todayDate: string): string {
-  if (date === todayDate) return "Dziś";
-  const d = parseDate(date);
-  const today = parseDate(todayDate);
-  const diffDays = Math.round((d.getTime() - today.getTime()) / 86_400_000);
-  if (diffDays === 1) return "Jutro";
-  return DAY_NAMES[d.getUTCDay()];
+/** Etykieta dnia w UI: „6 lip”. */
+export function dayDateLabel(date: string): string {
+  const [, m, d] = date.split("-");
+  return `${Number(d)} ${MONTHS_SHORT[Number(m) - 1]}`;
 }
 
 export function warsawToday(date = new Date()): string {

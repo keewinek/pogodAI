@@ -155,7 +155,11 @@ export function NotFoundCleanup() {
 }
 
 export function DailyAccordion(
-  { days, labels }: { days: DayForecast[]; labels: string[] },
+  {
+    days,
+    labels,
+    todayDate,
+  }: { days: DayForecast[]; labels: string[]; todayDate: string },
 ) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const { globalMin, globalMax } = useMemo(() => {
@@ -179,10 +183,12 @@ export function DailyAccordion(
               aria-expanded={open}
               onClick={() => setOpenIdx(open ? null : i)}
               class={`grouped-row w-full text-left transition hover:bg-white/[0.04] py-3 ${
-                labels[i] === "Dziś" ? "font-semibold" : ""
+                day.date === todayDate ? "font-semibold" : ""
               }`}
             >
-              <span class="w-[3.25rem] shrink-0 text-[17px]">{labels[i]}</span>
+              <span class="w-[4.5rem] shrink-0 text-[15px] tabular-nums">
+                {labels[i]}
+              </span>
               <span
                 class="text-[20px] leading-none select-none shrink-0"
                 aria-hidden="true"

@@ -116,8 +116,8 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 
 ## Wymagania techniczne
 
-- `days`: 7 dni, `[0]` = dziś.
-- `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–7 co 3 h (8 wpisów).
+- `days`: **14 dni**, `[0]` = dziś.
+- `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–14 co 3 h (8 wpisów).
 - Godzinówkę zbuduj z Open-Meteo hourly (endpoint poniżej): weź
   `temperature_2m`, `precipitation_probability`, `wind_speed_10m`,
   `weather_code`; zaokrąglij do liczb całkowitych; `weather_code` → emoji wg
@@ -131,7 +131,7 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 Przykładowe endpointy (użyj `{lat}`, `{lon}`, `{nazwa}` z lokalizacji):
 
 - Open-Meteo multi-model:
-  `https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&models=icon_seamless,gfs_seamless,ecmwf_ifs025&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FWarsaw&forecast_days=7`
+  `https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&models=icon_seamless,gfs_seamless,ecmwf_ifs025&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&hourly=temperature_2m,precipitation_probability,wind_speed_10m,weather_code&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&timezone=Europe%2FWarsaw&forecast_days=14`
 - YR.no:
   `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}`
   (nagłówek `User-Agent: PogodAI/1.0`)

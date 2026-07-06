@@ -2,7 +2,7 @@ import { HttpError } from "fresh";
 import { define } from "../utils.ts";
 import { getForecast, getLocation, listLocations } from "../lib/db.ts";
 import {
-  dayLabel,
+  dayDateLabel,
   DEFAULT_THEME,
   themeFor,
   upcomingHours,
@@ -67,10 +67,11 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
               />
             </section>
             <section>
-              <h2 class="section-label">7 dni</h2>
+              <h2 class="section-label">14 dni</h2>
               <DailyAccordion
                 days={forecast.days}
-                labels={forecast.days.map((d) => dayLabel(d.date, today))}
+                todayDate={today}
+                labels={forecast.days.map((d) => dayDateLabel(d.date))}
               />
             </section>
             <FreshnessFooter
