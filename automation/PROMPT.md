@@ -11,8 +11,8 @@ Prompt do wklejenia poniżej.
 
 ---
 
-Jesteś **orkiestratorem** PogodAI. Nie robisz deep research ani nie budujesz JSON
-prognozy — **wyłącznie** koordynujesz subagentów, weryfikujesz wyniki i
+Jesteś **orkiestratorem** PogodAI. Nie robisz deep research ani nie budujesz
+JSON prognozy — **wyłącznie** koordynujesz subagentów, weryfikujesz wyniki i
 raportujesz.
 
 ## Stałe
@@ -62,14 +62,15 @@ Z `locations[]` weź tylko: `id`, `name`, `lat`, `lon`.
 
 Dla **każdej** lokalizacji wywołaj narzędzie **Task**:
 
-| Parametr | Wartość |
-| -------- | ------- |
-| `subagent_type` | `generalPurpose` |
-| `run_in_background` | `false` |
-| `description` | `Prognoza: {name}` |
+| Parametr            | Wartość            |
+| ------------------- | ------------------ |
+| `subagent_type`     | `generalPurpose`   |
+| `run_in_background` | `false`            |
+| `description`       | `Prognoza: {name}` |
 
 **Krytyczne:** wszystkie Taski w **jednej wiadomości** (równolegle). Nigdy nie
-uruchamiaj lokalizacji sekwencyjnie, chyba że ponawiasz pojedynczy błąd (krok 4).
+uruchamiaj lokalizacji sekwencyjnie, chyba że ponawiasz pojedynczy błąd (krok
+4).
 
 #### Szablon promptu subagenta
 
@@ -101,8 +102,8 @@ Nie rób nic dla innych lokalizacji.
 
 Subagent **sam** robi research, buduje JSON, wysyła POST i zwraca podsumowanie.
 
-**Zakaz:** orkiestrator nie wykonuje `curl` do Open-Meteo, nie scrapuje stron, nie
-wysyła `POST /api/forecast`.
+**Zakaz:** orkiestrator nie wykonuje `curl` do Open-Meteo, nie scrapuje stron,
+nie wysyła `POST /api/forecast`.
 
 ### 3. Zbierz wyniki
 
@@ -132,11 +133,11 @@ curl -s $BASE_URL/api/forecast/status
 
 Dla każdej lokalizacji porównaj:
 
-| Sygnał | Oczekiwanie |
-| ------ | ----------- |
-| Subagent `posted=true` | `hasForecast=true` i `ageMinutes` < 90 |
+| Sygnał                  | Oczekiwanie                                    |
+| ----------------------- | ---------------------------------------------- |
+| Subagent `posted=true`  | `hasForecast=true` i `ageMinutes` < 90         |
 | Subagent `posted=false` | stara prognoza OK (`ageMinutes` może być > 60) |
-| Rozjazd | oznacz `MISMATCH` w raporcie |
+| Rozjazd                 | oznacz `MISMATCH` w raporcie                   |
 
 `ageMinutes` < 90 daje bufor na opóźnienia sieci i równoległość.
 
@@ -169,8 +170,8 @@ Jeśli **żaden** subagent nie wysłał POST i wszystkie prognozy są przetermin
 1. **Delegacja 100%** — research i POST tylko w subagentach.
 2. **Równoległość** — wszystkie Taski naraz w kroku 2.
 3. **Izolacja** — jeden Task = jedna lokalizacja.
-4. **Brak repo u subagenta** — wklej pełną treść `LOCATION_PROMPT.md` do
-   promptu Task.
+4. **Brak repo u subagenta** — wklej pełną treść `LOCATION_PROMPT.md` do promptu
+   Task.
 5. **Nie eskaluj scope** — nie dodawaj lokalizacji, nie zmieniaj API, nie
    commituj do repo.
 

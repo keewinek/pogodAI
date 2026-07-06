@@ -594,7 +594,14 @@ body {
 }
 
 .radar-btn {
-  font-size: 13px;
+  padding: 8px;
+  min-width: 44px;
+}
+
+.radar-btn-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .radar-time {
