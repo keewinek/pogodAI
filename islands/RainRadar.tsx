@@ -335,7 +335,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
       <div class="radar-controls">
         <button
           type="button"
-          class="btn-ghost radar-btn"
+          class="radar-btn"
           onClick={() => setPlaying((p) => !p)}
           aria-label={playing ? "Zatrzymaj" : "Odtwórz"}
         >

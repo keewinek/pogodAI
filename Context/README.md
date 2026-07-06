@@ -27,6 +27,8 @@ Orkiestrator (cron) → subagent × lokalizacja → POST /api/forecast → Deno 
 | GET    | `/api/locations/:id`        |
 | GET    | `/api/forecast/:locationId` |
 | GET    | `/api/forecast/status`      |
+| GET    | `/api/accuracy`             |
+| GET    | `/api/accuracy/:locationId` |
 | POST   | `/api/forecast`             |
 | GET    | `/api/health`               |
 

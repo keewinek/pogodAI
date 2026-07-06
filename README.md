@@ -17,15 +17,17 @@ Cursor Automation (orkiestrator, cron)
 
 ## API
 
-| Metoda | Ścieżka                     | Opis                          |
-| ------ | --------------------------- | ----------------------------- |
-| GET    | `/api/locations`            | Lista lokalizacji             |
-| POST   | `/api/locations`            | Dodaj lokalizację             |
-| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę) |
-| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji      |
-| GET    | `/api/forecast/status`      | Status prognoz (orkiestrator) |
-| POST   | `/api/forecast`             | Zapis prognozy (subagent)     |
-| GET    | `/api/health`               | Status systemu                |
+| Metoda | Ścieżka                     | Opis                           |
+| ------ | --------------------------- | ------------------------------ |
+| GET    | `/api/locations`            | Lista lokalizacji              |
+| POST   | `/api/locations`            | Dodaj lokalizację              |
+| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę)  |
+| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji       |
+| GET    | `/api/forecast/status`      | Status prognoz (orkiestrator)  |
+| GET    | `/api/accuracy`             | Sprawdzalność globalna (agent) |
+| GET    | `/api/accuracy/:locationId` | Sprawdzalność + hints (agent)  |
+| POST   | `/api/forecast`             | Zapis prognozy (subagent)      |
+| GET    | `/api/health`               | Status systemu                 |
 
 ## Development
 

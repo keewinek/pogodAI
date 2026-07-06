@@ -25,11 +25,18 @@ curl -X POST https://pogodai.keewinek.deno.net/api/verification/run
    - `skipped` — ile pominięto (brak obserwacji)
    - `staleRemoved` — ile przeterminowanych pending usunięto
    - `globalAccuracy` — aktualna globalna sprawdzalność
+   - `totalPairs` — łączna liczba par w statystykach
    - `errors` — ewentualne błędy Open-Meteo
 
 3. Jeśli `errors` nie jest puste — nie panikuj, spróbuj ponownie za godzinę.
 
-4. Opcjonalnie sprawdź health:
+4. Opcjonalnie — briefing dla agentów (po weryfikacji zaktualizowane hints):
+
+```bash
+curl https://pogodai.keewinek.deno.net/api/accuracy
+```
+
+5. Health:
 
 ```bash
 curl https://pogodai.keewinek.deno.net/api/health
