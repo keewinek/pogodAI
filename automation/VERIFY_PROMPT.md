@@ -50,7 +50,7 @@ curl https://pogodai.keewinek.deno.net/api/health
 - Orkiestrator po rundzie sprawdza `GET /api/forecast/status` (świeżość per
   lokalizacja).
 - Pierwsze wyniki pojawiają się ~7+ godzin po pierwszej prognozie (min. lead 6h
-  + 1h na obserwację).
+  - 1h na obserwację).
 - Pełny horyzont 14 dni: próbki z dni 8–14 weryfikują się dopiero po ~8–14
   dniach od wydania prognozy (koszyk `week2`).
 - Nie modyfikuj danych w KV ręcznie.

@@ -9,6 +9,7 @@ import {
   leadBucketLabel,
   MAX_LEAD_HOURS,
   MIN_LEAD_HOURS,
+  PRECIP_CHANCE_RAIN_THRESHOLD,
   PRECIP_RAIN_THRESHOLD_MM,
   PRELIMINARY_PAIR_THRESHOLD,
   SAMPLE_HOURS_PER_FORECAST,
@@ -289,8 +290,8 @@ export function buildGlobalAccuracyBrief(
       minLeadHours: MIN_LEAD_HOURS,
       maxLeadHours: MAX_LEAD_HOURS,
       tempScoreFormula: "max(0, 100 - |błąd°C| × 10)",
-      precipRainThresholdMm: 0.1,
-      precipChanceRainThreshold: 50,
+      precipRainThresholdMm: PRECIP_RAIN_THRESHOLD_MM,
+      precipChanceRainThreshold: PRECIP_CHANCE_RAIN_THRESHOLD,
     },
   };
 }
