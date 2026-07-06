@@ -85,7 +85,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
 
   if (loading) {
     return (
-      <div class="grouped radar-panel">
+      <div class="radar-panel">
         <p class="radar-status muted">Ładowanie radaru…</p>
       </div>
     );
@@ -93,7 +93,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
 
   if (error || !frames.length) {
     return (
-      <div class="grouped radar-panel">
+      <div class="radar-panel">
         <p class="radar-status muted">{error ?? "Brak danych radarowych."}</p>
       </div>
     );
@@ -104,7 +104,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   const isLatest = idx === frames.length - 1;
 
   return (
-    <div class="grouped radar-panel">
+    <div class="radar-panel">
       <div class="radar-map-wrap">
         <img
           src={src}

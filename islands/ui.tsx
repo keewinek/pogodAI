@@ -151,7 +151,7 @@ export function DailyAccordion(
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <div class="grouped daily-list">
+    <div class="daily-list">
       {days.map((day, i) => {
         const open = openIdx === i;
         const isToday = day.date === todayDate;

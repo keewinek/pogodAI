@@ -5,17 +5,14 @@
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     system-ui, sans-serif;
-  --surface: #2a3344;
-  --surface-hover: #343f52;
-  --surface-active: #3d4a60;
-  --surface-inset: #1e2532;
-  --surface-header: #1a2030;
-  --border: #445068;
-  --border-subtle: #384358;
-  --text-primary: #f2f5f9;
-  --text-secondary: #b8c2d0;
-  --text-muted: #8b97a8;
-  --text-faint: #667080;
+  --fill: rgba(255, 255, 255, 0.1);
+  --fill-hover: rgba(255, 255, 255, 0.14);
+  --fill-active: rgba(255, 255, 255, 0.18);
+  --separator: rgba(255, 255, 255, 0.14);
+  --text-primary: #fff;
+  --text-secondary: rgba(255, 255, 255, 0.78);
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-faint: rgba(255, 255, 255, 0.38);
   --accent-warm: #fcd34d;
   --accent-cool: #a5b4fc;
   --accent-rain: #7cb8f8;
@@ -55,8 +52,7 @@ body {
   justify-content: center;
   height: 3rem;
   padding-top: env(safe-area-inset-top, 0px);
-  background: var(--surface-header);
-  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
 }
 
 .app-header-title {
@@ -91,10 +87,8 @@ body {
 
 .grouped {
   border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
+  background: var(--fill);
   overflow: hidden;
-  box-shadow: 0 2px 8px #141a24;
 }
 
 .grouped-row {
@@ -107,7 +101,7 @@ body {
 
 .grouped-row + .grouped-row,
 .grouped-divider > * + * {
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--separator);
 }
 
 .grouped-row-interactive {
@@ -115,7 +109,7 @@ body {
 }
 
 .grouped-row-interactive:hover {
-  background: var(--surface-hover);
+  background: var(--fill-hover);
 }
 
 .btn-pill {
@@ -124,8 +118,7 @@ body {
   justify-content: center;
   gap: 6px;
   border-radius: 9999px;
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
+  background: var(--fill);
   padding: 10px 18px;
   font-size: 15px;
   font-weight: 500;
@@ -135,13 +128,12 @@ body {
 }
 
 .btn-pill:hover {
-  background: var(--surface-hover);
+  background: var(--fill-hover);
 }
 
 .btn-primary {
   border-radius: 14px;
-  background: var(--surface-active);
-  border: 1px solid var(--border);
+  background: var(--fill-active);
   padding: 12px 20px;
   font-size: 17px;
   font-weight: 600;
@@ -151,7 +143,7 @@ body {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #4a5870;
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .btn-primary:disabled {
@@ -169,15 +161,14 @@ body {
 }
 
 .btn-ghost:hover {
-  background: var(--surface-hover);
+  background: var(--fill-hover);
   color: var(--text-primary);
 }
 
 .field {
   width: 100%;
   border-radius: 12px;
-  background: var(--surface-inset);
-  border: 1px solid var(--border-subtle);
+  background: var(--fill);
   padding: 12px 14px;
   font-size: 17px;
   color: var(--text-primary);
@@ -190,7 +181,7 @@ body {
 }
 
 .field:focus {
-  border-color: var(--border);
+  background: var(--fill-hover);
 }
 
 .chevron {
@@ -235,9 +226,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
   padding: 12px 0;
   margin-top: 16px;
 }
@@ -253,7 +241,7 @@ body {
 }
 
 .stat-chip-item + .stat-chip-item {
-  border-left: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--separator);
 }
 
 .stat-chip-value {
@@ -265,7 +253,7 @@ body {
 }
 
 .verdict-accent {
-  border-left: 3px solid var(--border);
+  border-left: 2px solid var(--separator);
   padding-left: 14px;
 }
 
@@ -279,10 +267,6 @@ body {
 .precip-badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 9999px;
-  background: var(--surface-inset);
-  border: 1px solid var(--border-subtle);
-  padding: 5px 12px;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -290,7 +274,7 @@ body {
 }
 
 .hour-strip {
-  padding: 8px 6px;
+  padding: 4px 0;
 }
 
 .hour-slot {
@@ -304,7 +288,7 @@ body {
 }
 
 .hour-slot-active {
-  background: var(--surface-active);
+  background: var(--fill-active);
 }
 
 .hour-time {
@@ -326,7 +310,11 @@ body {
 }
 
 .daily-list {
-  padding: 8px 8px 10px;
+  padding: 0;
+}
+
+.verdict-block {
+  padding: 4px 2px;
 }
 
 .daily-row {
@@ -343,16 +331,16 @@ body {
 }
 
 .daily-row:hover {
-  background: var(--surface-hover);
+  background: var(--fill-hover);
 }
 
 .daily-row-today {
   font-weight: 600;
-  background: var(--surface-active);
+  background: var(--fill);
 }
 
 .daily-row-today:hover {
-  background: #465268;
+  background: var(--fill-hover);
 }
 
 .daily-date {
@@ -401,23 +389,12 @@ body {
 }
 
 .daily-detail {
-  margin: 4px 6px 6px;
-  padding: 12px 8px 10px;
-  border-radius: 12px;
-  background: var(--surface-inset);
-  border: 1px solid var(--border-subtle);
-}
-
-.daily-wind {
-  margin-top: 10px;
-  padding: 0 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+  margin: 2px 0 4px;
+  padding: 8px 4px 6px;
 }
 
 .radar-panel {
-  padding: 10px;
+  padding: 4px 0;
 }
 
 .radar-status {
@@ -429,8 +406,6 @@ body {
 .radar-map-wrap {
   border-radius: 12px;
   overflow: hidden;
-  background: var(--surface-inset);
-  border: 1px solid var(--border-subtle);
 }
 
 .radar-map {
@@ -483,8 +458,6 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
   font-size: 28px;
   margin-bottom: 16px;
 }
@@ -494,7 +467,7 @@ body {
   height: 52px;
   margin: 0 auto 20px;
   border-radius: 50%;
-  border: 2px solid var(--border);
+  border: 2px solid var(--separator);
   position: relative;
 }
 
@@ -503,7 +476,7 @@ body {
   position: absolute;
   inset: -2px;
   border-radius: 50%;
-  border: 2px solid var(--border-subtle);
+  border: 2px solid transparent;
   border-top-color: var(--text-secondary);
   animation: empty-spin 1.8s linear infinite;
 }
@@ -514,9 +487,12 @@ body {
   }
 }
 
-.footer-badge {
-  background: var(--surface);
-  border: 1px solid var(--border-subtle);
+.daily-wind {
+  margin-top: 10px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .text-warn {

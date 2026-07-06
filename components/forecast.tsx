@@ -50,7 +50,7 @@ export function Hero(
 
 export function VerdictCard({ verdict }: { verdict: Verdict }) {
   return (
-    <section class="grouped px-5 py-4">
+    <section class="verdict-block px-1 py-1">
       <div class="verdict-accent">
         <p class="verdict-text">
           {verdict.text}
@@ -113,7 +113,7 @@ export function HourlyStrip(
   );
 
   if (embedded) return strip;
-  return <div class="grouped hour-strip">{strip}</div>;
+  return <div class="hour-strip">{strip}</div>;
 }
 
 export function FreshnessFooter(
@@ -132,7 +132,7 @@ export function FreshnessFooter(
 
   return (
     <footer class="pt-4 pb-12 text-center">
-      <div class="footer-badge inline-block rounded-full px-4 py-2">
+      <div class="footer-badge inline-block px-4 py-2">
         <p class={`text-[12px] ${freshnessClass}`}>
           Zaktualizowano {relativeTime(generatedAt)}
           {warning && <span class="block mt-0.5">{warning}</span>}

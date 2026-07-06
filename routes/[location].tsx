@@ -47,7 +47,7 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
 
       {!forecast
         ? (
-          <section class="grouped px-6 py-14 text-center mt-4">
+          <section class="px-2 py-14 text-center mt-4">
             <div class="empty-ring" aria-hidden="true" />
             <p class="text-[20px] font-semibold tracking-tight">
               Czekam na prognozę
