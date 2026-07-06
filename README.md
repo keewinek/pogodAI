@@ -53,6 +53,16 @@ Test end-to-end z przykładową prognozą:
 Push na `main` → automatyczny deploy na Deno Deploy (konfiguracja w `deno.json`
 → `deploy`).
 
+### Deno KV (wymagane na produkcji)
+
+1. W [Deno Deploy](https://dash.deno.com) → **Databases** → **Provision
+   Database** → **Deno KV**
+2. **Assign** bazę do aplikacji `pogodai`
+3. Po deployu `/api/health` powinno zwracać `"kv": true`
+
+Lokalnie KV to plik SQLite; na Deploy — zarządzana baza przypisana do aplikacji.
+Przy każdym deployu `predeploy` uzupełnia brakujące prognozy (bootstrap).
+
 ### Odświeżanie prognoz (co godzinę)
 
 | Mechanizm             | Opis                                                                            |

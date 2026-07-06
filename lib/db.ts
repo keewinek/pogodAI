@@ -13,6 +13,13 @@ export const DEFAULT_LOCATION: Location = {
 
 let kvPromise: Promise<Deno.Kv> | null = null;
 
+const KV_SETUP_HINT =
+  "Przypisz bazę Deno KV do aplikacji w panelu Deno Deploy (Databases → Assign).";
+
+function resetKvPromise(): void {
+  kvPromise = null;
+}
+
 export function getKv(): Promise<Deno.Kv> {
   if (!kvPromise) {
     kvPromise = Deno.openKv().then(async (kv) => {
@@ -25,9 +32,25 @@ export function getKv(): Promise<Deno.Kv> {
           .commit();
       }
       return kv;
+    }).catch((err) => {
+      resetKvPromise();
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Nie można otworzyć Deno KV: ${msg}. ${KV_SETUP_HINT}`);
     });
   }
   return kvPromise;
+}
+
+/** Szybki test połączenia z KV (np. /api/health). */
+export async function pingKv(): Promise<boolean> {
+  try {
+    const kv = await getKv();
+    await kv.get(["__ping__"]);
+    return true;
+  } catch {
+    resetKvPromise();
+    return false;
+  }
 }
 
 export async function listLocations(): Promise<Location[]> {

@@ -6,7 +6,8 @@
     "app": "pogodai",
     "framework": "fresh",
     "install": "deno install --allow-scripts --frozen-lockfile",
-    "build": "deno run -A npm:vite build"
+    "build": "deno run -A npm:vite build",
+    "predeploy": "deno run -A --unstable-kv scripts/bootstrap-kv.ts"
   },
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check && deno test -A lib/",
