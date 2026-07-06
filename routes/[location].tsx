@@ -67,7 +67,11 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
               />
             </section>
             <section>
-              <h2 class="section-label">14 dni</h2>
+              <h2 class="section-label">
+                {forecast.days.length === 14
+                  ? "14 dni"
+                  : `${forecast.days.length} dni`}
+              </h2>
               <DailyAccordion
                 days={forecast.days}
                 todayDate={today}

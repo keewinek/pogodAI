@@ -118,6 +118,11 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 
 - `days`: **14 dni**, `[0]` = dziś.
 - `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–14 co 3 h (8 wpisów).
+- Pola dzienne `tempMin`, `tempMax`, `precipitationChance`, `windKmh` i
+  `summary` bierz z Open-Meteo **daily** (nie zeruj — muszą być spójne z
+  godzinówką).
+- `summary`: jedno zdanie po polsku o scenariuszu dnia (nie szablon typu
+  „0–0°”).
 - Godzinówkę zbuduj z Open-Meteo hourly (endpoint poniżej): weź
   `temperature_2m`, `precipitation_probability`, `wind_speed_10m`,
   `weather_code`; zaokrąglij do liczb całkowitych; `weather_code` → emoji wg

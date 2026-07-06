@@ -171,6 +171,39 @@ export function dayTemps(day: DayForecast): { min: number; max: number } {
   return { min: Math.min(...temps), max: Math.max(...temps) };
 }
 
+export function dayWind(day: DayForecast): number {
+  const fromHours = day.hours.length
+    ? Math.max(...day.hours.map((h) => h.windKmh))
+    : 0;
+  return day.windKmh > 0 ? day.windKmh : fromHours;
+}
+
+export function dayPrecip(day: DayForecast): number {
+  const fromHours = day.hours.length
+    ? Math.max(...day.hours.map((h) => h.precipitationChance))
+    : 0;
+  return day.precipitationChance > 0 ? day.precipitationChance : fromHours;
+}
+
+/** Podsumowanie dnia — fallback gdy automation wysłało placeholdery z zerami. */
+export function daySummary(day: DayForecast): string {
+  const placeholder = /0[–-]0°/.test(day.summary);
+  if (!placeholder && !(day.tempMin === 0 && day.tempMax === 0)) {
+    return day.summary;
+  }
+  const { min, max } = dayTemps(day);
+  const precip = dayPrecip(day);
+  const wind = dayWind(day);
+  const label = conditionLabel(day.emoji);
+  let text = `${label} — ${Math.round(min)}° do ${Math.round(max)}°`;
+  if (precip >= 30) text += `, opady do ${Math.round(precip)}%`;
+  else if (precip > 0) {
+    text += `, niewielka szansa opadów (${Math.round(precip)}%)`;
+  }
+  if (wind >= 25) text += `, wiatr do ${Math.round(wind)} km/h`;
+  return `${text}.`;
+}
+
 export function hourLabel(time: string): string {
   return time.slice(11, 16);
 }

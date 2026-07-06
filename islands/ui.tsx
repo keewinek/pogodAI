@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { DayForecast, Location } from "../lib/db.ts";
-import { dayTemps } from "../lib/display.ts";
+import { dayPrecip, daySummary, dayTemps, dayWind } from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
@@ -175,6 +175,8 @@ export function DailyAccordion(
       {days.map((day, i) => {
         const open = openIdx === i;
         const { min: tempMin, max: tempMax } = dayTemps(day);
+        const precip = dayPrecip(day);
+        const wind = dayWind(day);
         const bar = tempBarStyle(tempMin, tempMax, globalMin, globalMax);
         return (
           <div key={day.date}>
@@ -210,9 +212,7 @@ export function DailyAccordion(
                 </span>
               </div>
               <span class="w-9 shrink-0 text-right text-[14px] muted tabular-nums">
-                {day.precipitationChance > 0
-                  ? `${Math.round(day.precipitationChance)}%`
-                  : "—"}
+                {precip > 0 ? `${Math.round(precip)}%` : "—"}
               </span>
               <span
                 class={`chevron transition-transform duration-200 ${
@@ -224,11 +224,11 @@ export function DailyAccordion(
             {open && (
               <div class="px-4 pb-4 pt-2 border-t border-white/[0.08]">
                 <p class="text-[15px] muted-strong leading-relaxed mb-4">
-                  {day.summary}
+                  {daySummary(day)}
                 </p>
                 <HourlyStrip hours={day.hours} embedded />
                 <p class="mt-3 text-[13px] muted tabular-nums">
-                  Wiatr do {Math.round(day.windKmh)} km/h
+                  Wiatr do {Math.round(wind)} km/h
                 </p>
               </div>
             )}
