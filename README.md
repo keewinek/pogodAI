@@ -1,86 +1,48 @@
 # PogodAI 🌦️
 
-Najdokładniejsza pogoda pod słońcem. Osobisty, hiperlokalny system prognozowania
-pogody: agent AI (Cursor Cloud Automations) co godzinę agreguje dane z wielu
-serwisów i modeli pogodowych, a następnie syntetyzuje jedną, "ostateczną"
-prognozę z werdyktem po polsku.
+Hiperlokalna prognoza pogody. **Cursor Cloud Automation** co godzinę zbiera dane
+z wielu źródeł, składa JSON i zapisuje go przez `POST /api/forecast`. Frontend
+czyta prognozę z Deno KV.
 
 Prod: **https://pogodai.keewinek.deno.net/**
 
 ## Architektura
 
-- **Frontend + API:** Fresh 2 (Deno + Vite + Preact islands + Tailwind) na Deno
-  Deploy, dane w Deno KV.
-- **Agregator:** Cursor Cloud Automation (cron co godzinę) — prompt w
-  `automation/PROMPT.md`. Scraping przez `r.jina.ai`, twarde liczby z Open-Meteo
-  (multi-model) i YR.no.
+```
+Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR + islands)
+```
 
-Szczegółowe plany w folderze `Context/`.
+- Prompt automatyzacji: `automation/PROMPT.md`
+- Plany: folder `Context/`
 
 ## API
 
-| Metoda | Ścieżka                     | Autoryzacja | Opis                               |
-| ------ | --------------------------- | ----------- | ---------------------------------- |
-| GET    | `/api/locations`            | —           | Lista lokalizacji                  |
-| POST   | `/api/locations`            | —           | Dodaj lokalizację                  |
-| DELETE | `/api/locations/:id`        | —           | Usuń lokalizację (+ jej prognozę)  |
-| GET    | `/api/forecast/:locationId` | —           | Najnowsza prognoza dla lokalizacji |
-| POST   | `/api/forecast`             | —           | Zapis prognozy (automatyzacja)     |
-| GET    | `/api/health`               | —           | Status systemu                     |
-| GET    | `/api/geocode/search?q=`    | —           | Autocomplete miejscowości (PL)     |
-| GET    | `/api/geocode/reverse`      | —           | Reverse geocoding (GPS → nazwa)    |
+| Metoda | Ścieżka                     | Opis                            |
+| ------ | --------------------------- | ------------------------------- |
+| GET    | `/api/locations`            | Lista lokalizacji               |
+| POST   | `/api/locations`            | Dodaj lokalizację               |
+| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę)   |
+| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji        |
+| POST   | `/api/forecast`             | Zapis prognozy (automatyzacja)  |
+| GET    | `/api/health`               | Status KV i liczba prognoz      |
+| GET    | `/api/geocode/search?q=`    | Autocomplete miejscowości (PL)  |
+| GET    | `/api/geocode/reverse`      | Reverse geocoding (GPS → nazwa) |
 
 ## Development
 
-Wymagany [Deno](https://docs.deno.com/runtime/getting_started/installation).
-
 ```bash
-deno task dev          # dev server (Vite)
-deno task check        # fmt + lint + typy + testy
-deno task build        # build produkcyjny
-deno task start        # serwuj build (port 8000)
-```
-
-Test end-to-end z przykładową prognozą:
-
-```bash
-./scripts/seed-forecast.sh http://localhost:8000 warszawa-bialoleka
-./scripts/seed-forecast.sh https://pogodai.keewinek.deno.net/   # prod
+deno task dev      # dev server
+deno task check    # fmt + lint + typy + testy
+deno task build    # build produkcyjny
+deno task start    # serwuj build (port 8000)
 ```
 
 ## Deploy
 
-Push na `main` → automatyczny deploy na Deno Deploy (konfiguracja w `deno.json`
-→ `deploy`).
+Push na `main` → Deno Deploy (`deno.json` → `deploy`).
 
-### Deno KV (wymagane na produkcji)
+**Deno KV:** w panelu Deno Deploy → Databases → Provision Deno KV → Assign do
+aplikacji `pogodai`. `/api/health` powinno zwracać `"kv": true`.
 
-1. W [Deno Deploy](https://dash.deno.com) → **Databases** → **Provision
-   Database** → **Deno KV**
-2. **Assign** bazę do aplikacji `pogodai`
-3. Po deployu `/api/health` powinno zwracać `"kv": true`
-
-Lokalnie KV to plik SQLite; na Deploy — zarządzana baza przypisana do aplikacji.
-Przy każdym deployu `predeploy` uzupełnia brakujące prognozy (bootstrap).
-
-### Odświeżanie prognoz (co godzinę)
-
-| Mechanizm             | Opis                                                                            |
-| --------------------- | ------------------------------------------------------------------------------- |
-| **Cursor Automation** | Główny: deep research AI — `automation/PROMPT.md`, cron `0 * * * *`             |
-| **GitHub Actions**    | Fallback: `.github/workflows/update-forecasts.yml` — Open-Meteo + Jina, bez LLM |
-| **Ręcznie**           | `deno task update-forecasts` (env `POGODAI_API`, domyślnie prod)                |
-
-```bash
-deno task update-forecasts
-POGODAI_API=http://localhost:8000 deno task update-forecasts
-```
-
-### Aktualizacja prognoz (co godzinę)
-
-| Metoda                | Opis                                                                                      |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| **GitHub Actions**    | `.github/workflows/update-forecasts.yml` — cron co godzinę, Open-Meteo + Jina → POST prod |
-| **Lokalnie**          | `deno task update-forecasts` (env `POGODAI_API`, domyślnie prod)                          |
-| **Cursor Automation** | `automation/PROMPT.md` — deep research AI (gdy działa UI)                                 |
-| **Smoke test**        | `./scripts/seed-forecast.sh` — przykładowe dane                                           |
+**Prognozy:** tylko Cursor Automation (`automation/PROMPT.md`, cron
+`0 * * * *`).

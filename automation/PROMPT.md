@@ -5,10 +5,6 @@ Konfiguracja automatyzacji:
 - **Nazwa:** PogodAI — aktualizacja prognoz
 - **Harmonogram:** cron `0 * * * *` (co godzinę)
 - **Dostęp do repo:** niepotrzebny (agent działa wyłącznie na HTTP)
-- **Fallback:** GitHub Actions `update-forecasts.yml` (Open-Meteo + Jina, bez
-  LLM) — działa gdy Cursor Automation nie jest skonfigurowana
-- **Fallback:** GitHub Actions co godzinę (`deno task update-forecasts`) gdy ta
-  automatyzacja nie działa
 
 Prompt do wklejenia poniżej.
 
@@ -122,11 +118,11 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 
 - `days`: 7 dni, `[0]` = dziś.
 - `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–7 co 3 h (8 wpisów).
-- Godzinówkę **przepisz programowo** z Open-Meteo hourly — nie generuj 150+
-  wpisów tokenami:
-  `deno run -A https://raw.githubusercontent.com/keewinek/pogodAI/main/scripts/map-open-meteo-hourly.ts {lat} {lon}`
-  (mapuje `weather_code` → emoji wg WMO; skrypt w repo:
-  `scripts/map-open-meteo-hourly.ts`)
+- Godzinówkę zbuduj z Open-Meteo hourly (endpoint poniżej): weź
+  `temperature_2m`, `precipitation_probability`, `wind_speed_10m`,
+  `weather_code`; zaokrąglij do liczb całkowitych; `weather_code` → emoji wg
+  WMO: 0→☀️, 1→🌤️, 2–3→⛅, 45–48→🌫️, 51–67→🌧️, 71–77→🌨️, 85–86→❄️, 95–99→⛈️,
+  inaczej ☁️.
 - `time` w strefie Europe/Warsaw.
 - Emoji tylko: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨
 - Liczby całkowite: °C, km/h, %.
