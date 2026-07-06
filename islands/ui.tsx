@@ -171,7 +171,7 @@ export function DailyAccordion(
   }, [days]);
 
   return (
-    <div class="grouped grouped-divider">
+    <div class="grouped">
       {days.map((day, i) => {
         const open = openIdx === i;
         const { min: tempMin, max: tempMax } = dayTemps(day);
@@ -223,7 +223,7 @@ export function DailyAccordion(
               />
             </button>
             {open && (
-              <div class="px-4 pb-4 pt-2 border-t border-white/[0.08]">
+              <div class="px-4 pb-4 pt-2">
                 <HourlyStrip hours={day.hours} embedded />
                 <p class="mt-3 text-[13px] muted tabular-nums">
                   Wiatr do {Math.round(wind)} km/h
