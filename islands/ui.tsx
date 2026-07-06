@@ -1,15 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import type { DayForecast, Location } from "../lib/types.ts";
+import type { DayForecast, Location } from "../lib/db.ts";
 import { dayTemps } from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
-
-interface GeocodePlace {
-  name: string;
-  lat: number;
-  lon: number;
-}
 
 function tempBarStyle(
   tempMin: number,
@@ -243,119 +237,25 @@ export function LocationEditor(
   { initialLocations }: { initialLocations: Location[] },
 ) {
   const [locations, setLocations] = useState(initialLocations);
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<GeocodePlace[]>([]);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState<GeocodePlace | null>(null);
-  const [gpsBusy, setGpsBusy] = useState(false);
+  const [name, setName] = useState("");
+  const [lat, setLat] = useState("");
+  const [lon, setLon] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<
     { kind: "ok" | "error"; text: string } | null
   >(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    const onClick = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
-    };
-    addEventListener("click", onClick);
-    return () => removeEventListener("click", onClick);
-  }, [searchOpen]);
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    const q = query.trim();
-    if (q.length < 2) {
-      setSuggestions([]);
-      setSearching(false);
-      return;
-    }
-    setSearching(true);
-    debounceRef.current = globalThis.setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        if (res.ok) {
-          setSuggestions(data.results ?? []);
-          setSearchOpen(true);
-        } else setSuggestions([]);
-      } catch {
-        setSuggestions([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query]);
-
-  const pick = (place: GeocodePlace) => {
-    setSelected(place);
-    setQuery(place.name);
-    setSuggestions([]);
-    setSearchOpen(false);
-    setMessage(null);
-  };
-
-  const useGps = () => {
-    if (!navigator.geolocation) {
-      setMessage({
-        kind: "error",
-        text: "Twoja przeglądarka nie obsługuje geolokalizacji.",
-      });
-      return;
-    }
-    setGpsBusy(true);
-    setMessage(null);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `/api/geocode?lat=${latitude}&lon=${longitude}`,
-          );
-          const data = await res.json();
-          if (!res.ok) {
-            setMessage({
-              kind: "error",
-              text: data.error ?? "Nie udało się rozpoznać lokalizacji.",
-            });
-            return;
-          }
-          pick(data.place);
-        } catch {
-          setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
-        } finally {
-          setGpsBusy(false);
-        }
-      },
-      (err) => {
-        setGpsBusy(false);
-        const text = err.code === err.PERMISSION_DENIED
-          ? "Brak dostępu do lokalizacji — zezwól w ustawieniach przeglądarki."
-          : err.code === err.POSITION_UNAVAILABLE
-          ? "Nie udało się ustalić pozycji GPS."
-          : "Przekroczono czas oczekiwania na GPS.";
-        setMessage({ kind: "error", text });
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
-    );
-  };
 
   const add = async (e: Event) => {
     e.preventDefault();
     setMessage(null);
-    if (!selected) {
-      setMessage({
-        kind: "error",
-        text: "Wyszukaj miejscowość na liście albo użyj GPS.",
-      });
+    const latN = parseFloat(lat);
+    const lonN = parseFloat(lon);
+    if (!name.trim()) {
+      setMessage({ kind: "error", text: "Podaj nazwę lokalizacji." });
+      return;
+    }
+    if (!Number.isFinite(latN) || !Number.isFinite(lonN)) {
+      setMessage({ kind: "error", text: "Podaj poprawne współrzędne." });
       return;
     }
     setBusy(true);
@@ -363,11 +263,7 @@ export function LocationEditor(
       const res = await fetch("/api/locations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: selected.name,
-          lat: selected.lat,
-          lon: selected.lon,
-        }),
+        body: JSON.stringify({ name: name.trim(), lat: latN, lon: lonN }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -378,8 +274,9 @@ export function LocationEditor(
         return;
       }
       setLocations([...locations, data]);
-      setQuery("");
-      setSelected(null);
+      setName("");
+      setLat("");
+      setLon("");
       setMessage({
         kind: "ok",
         text: "Dodano. Prognoza pojawi się w ciągu godziny.",
@@ -448,63 +345,43 @@ export function LocationEditor(
         <h2 class="text-[13px] font-semibold muted uppercase tracking-wide">
           Dodaj
         </h2>
-        <button
-          type="button"
-          onClick={useGps}
-          disabled={gpsBusy || busy}
-          class="btn-pill w-full disabled:opacity-40"
-        >
-          {gpsBusy ? "Szukam lokalizacji…" : "Użyj mojej lokalizacji"}
-        </button>
-        <div class="relative" ref={searchRef}>
+        <label class="flex flex-col gap-2">
+          <span class="text-[13px] font-semibold muted">Nazwa</span>
+          <input
+            type="text"
+            value={name}
+            onInput={(e) => setName((e.target as HTMLInputElement).value)}
+            placeholder="np. Białołęka, Warszawa"
+            class="field"
+          />
+        </label>
+        <div class="grid grid-cols-2 gap-3">
           <label class="flex flex-col gap-2">
-            <span class="text-[13px] font-semibold muted">Miejscowość</span>
+            <span class="text-[13px] font-semibold muted">Lat</span>
             <input
-              type="search"
-              value={query}
-              autoComplete="off"
-              aria-expanded={searchOpen && suggestions.length > 0}
-              onFocus={() => suggestions.length > 0 && setSearchOpen(true)}
-              onInput={(e) => {
-                const v = (e.target as HTMLInputElement).value;
-                setQuery(v);
-                if (selected && v !== selected.name) setSelected(null);
-              }}
-              placeholder="np. Białołęka, Zakopane…"
+              type="text"
+              inputMode="decimal"
+              value={lat}
+              onInput={(e) => setLat((e.target as HTMLInputElement).value)}
+              placeholder="52.32"
               class="field"
             />
           </label>
-          {searching && <p class="mt-1 text-[13px] muted">Szukam…</p>}
-          {searchOpen && suggestions.length > 0 && (
-            <ul class="absolute z-10 mt-2 w-full max-h-56 overflow-y-auto grouped py-1">
-              {suggestions.map((s) => (
-                <li key={`${s.lat}-${s.lon}-${s.name}`}>
-                  <button
-                    type="button"
-                    onClick={() => pick(s)}
-                    class="grouped-row w-full text-left hover:bg-white/[0.04] transition"
-                  >
-                    <span class="text-[17px] font-medium">{s.name}</span>
-                    <span class="block text-[13px] muted tabular-nums mt-0.5">
-                      {s.lat.toFixed(4)}°, {s.lon.toFixed(4)}°
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <label class="flex flex-col gap-2">
+            <span class="text-[13px] font-semibold muted">Lon</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={lon}
+              onInput={(e) => setLon((e.target as HTMLInputElement).value)}
+              placeholder="20.97"
+              class="field"
+            />
+          </label>
         </div>
-        {selected && (
-          <div class="rounded-[14px] bg-white/6 px-4 py-3">
-            <p class="text-[15px] font-medium">{selected.name}</p>
-            <p class="text-[13px] muted tabular-nums mt-0.5">
-              {selected.lat.toFixed(4)}°, {selected.lon.toFixed(4)}°
-            </p>
-          </div>
-        )}
         <button
           type="submit"
-          disabled={busy || !selected}
+          disabled={busy}
           class="btn-primary w-full disabled:opacity-40"
         >
           {busy ? "Dodawanie…" : "Dodaj lokalizację"}

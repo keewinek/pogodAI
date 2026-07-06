@@ -1,4 +1,4 @@
-import type { DayForecast, Forecast, HourForecast, Verdict } from "./types.ts";
+import type { DayForecast, Forecast, HourForecast, Verdict } from "./db.ts";
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 

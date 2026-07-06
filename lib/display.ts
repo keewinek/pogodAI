@@ -1,4 +1,4 @@
-import type { DayForecast, HourForecast } from "./types.ts";
+import type { DayForecast, HourForecast } from "./db.ts";
 
 // --- theme ---
 

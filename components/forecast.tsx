@@ -1,4 +1,4 @@
-import type { HourForecast, Verdict } from "../lib/types.ts";
+import type { HourForecast, Verdict } from "../lib/db.ts";
 import {
   ageMinutes,
   conditionLabel,

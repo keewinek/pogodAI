@@ -1,4 +1,46 @@
-import type { Forecast, Location } from "./types.ts";
+export interface Location {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  createdAt: string;
+}
+
+export interface HourForecast {
+  time: string;
+  emoji: string;
+  temperature: number;
+  precipitationChance: number;
+  windKmh: number;
+}
+
+export interface DayForecast {
+  date: string;
+  summary: string;
+  emoji: string;
+  tempMin: number;
+  tempMax: number;
+  precipitationChance: number;
+  windKmh: number;
+  hours: HourForecast[];
+}
+
+export interface Verdict {
+  text: string;
+  emoji: string;
+  temperature: number;
+  feelsLike: number;
+  precipitationChance: number;
+  windKmh: number;
+}
+
+export interface Forecast {
+  locationId: string;
+  generatedAt: string;
+  sources: string[];
+  verdict: Verdict;
+  days: DayForecast[];
+}
 
 const LOCATIONS_KEY = ["locations"];
 const FORECAST_KEY = "forecast";
@@ -13,17 +55,9 @@ export const DEFAULT_LOCATION: Location = {
 
 let kvPromise: Promise<Deno.Kv> | null = null;
 
-const KV_SETUP_HINT =
-  "Przypisz bazę Deno KV do aplikacji w panelu Deno Deploy (Databases → Assign).";
-
-function resetKvPromise(): void {
-  kvPromise = null;
-}
-
 export function getKv(): Promise<Deno.Kv> {
   if (!kvPromise) {
     kvPromise = Deno.openKv().then(async (kv) => {
-      // Seed: jeśli lista lokalizacji nie istnieje, dodaj domyślną Białołękę.
       const existing = await kv.get<Location[]>(LOCATIONS_KEY);
       if (existing.value === null) {
         await kv.atomic()
@@ -32,25 +66,9 @@ export function getKv(): Promise<Deno.Kv> {
           .commit();
       }
       return kv;
-    }).catch((err) => {
-      resetKvPromise();
-      const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(`Nie można otworzyć Deno KV: ${msg}. ${KV_SETUP_HINT}`);
     });
   }
   return kvPromise;
-}
-
-/** Szybki test połączenia z KV (np. /api/health). */
-export async function pingKv(): Promise<boolean> {
-  try {
-    const kv = await getKv();
-    await kv.get(["__ping__"]);
-    return true;
-  } catch {
-    resetKvPromise();
-    return false;
-  }
 }
 
 export async function listLocations(): Promise<Location[]> {

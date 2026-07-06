@@ -6,27 +6,23 @@ czyta prognozę z Deno KV.
 
 Prod: **https://pogodai.keewinek.deno.net/**
 
-## Architektura
-
 ```
-Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR + islands)
+Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh
 ```
 
-- Prompt automatyzacji: `automation/PROMPT.md`
-- Plany: folder `Context/`
+- Prompt: `automation/PROMPT.md`
+- Kontekst: `Context/README.md`
 
 ## API
 
-| Metoda | Ścieżka                     | Opis                            |
-| ------ | --------------------------- | ------------------------------- |
-| GET    | `/api/locations`            | Lista lokalizacji               |
-| POST   | `/api/locations`            | Dodaj lokalizację               |
-| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę)   |
-| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji        |
-| POST   | `/api/forecast`             | Zapis prognozy (automatyzacja)  |
-| GET    | `/api/health`               | Status KV i liczba prognoz      |
-| GET    | `/api/geocode?q=`           | Autocomplete miejscowości (PL)  |
-| GET    | `/api/geocode?lat=&lon=`    | Reverse geocoding (GPS → nazwa) |
+| Metoda | Ścieżka                     | Opis                           |
+| ------ | --------------------------- | ------------------------------ |
+| GET    | `/api/locations`            | Lista lokalizacji              |
+| POST   | `/api/locations`            | Dodaj lokalizację              |
+| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę)  |
+| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji       |
+| POST   | `/api/forecast`             | Zapis prognozy (automatyzacja) |
+| GET    | `/api/health`               | Status systemu                 |
 
 ## Development
 
@@ -39,10 +35,8 @@ deno task start    # serwuj build (port 8000)
 
 ## Deploy
 
-Push na `main` → Deno Deploy (`deno.json` → `deploy`).
+Push na `main` → Deno Deploy. W panelu: Databases → Deno KV → Assign do
+`pogodai`.
 
-**Deno KV:** w panelu Deno Deploy → Databases → Provision Deno KV → Assign do
-aplikacji `pogodai`. `/api/health` powinno zwracać `"kv": true`.
-
-**Prognozy:** tylko Cursor Automation (`automation/PROMPT.md`, cron
+Prognozy wyłącznie z Cursor Automation (`automation/PROMPT.md`, cron
 `0 * * * *`).
