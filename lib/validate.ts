@@ -1,4 +1,5 @@
 import type { DayForecast, Forecast, HourForecast, Verdict } from "./db.ts";
+import { tryWarsawLocalToDate } from "./verification.ts";
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
@@ -32,6 +33,12 @@ function validateHour(v: unknown, path: string): Result<HourForecast> {
     return {
       ok: false,
       error: `${path}.time: wymagany format YYYY-MM-DDTHH:00`,
+    };
+  }
+  if (!tryWarsawLocalToDate(v.time)) {
+    return {
+      ok: false,
+      error: `${path}.time: nieprawidłowa data lub godzina`,
     };
   }
   if (
@@ -77,6 +84,12 @@ function validateDay(v: unknown, path: string): Result<DayForecast> {
   if (!numberIn(v.tempMax, ...TEMP)) {
     return { ok: false, error: `${path}.tempMax: liczba w zakresie -60..60` };
   }
+  if (v.tempMax < v.tempMin) {
+    return {
+      ok: false,
+      error: `${path}: tempMax musi być >= tempMin`,
+    };
+  }
   if (!numberIn(v.precipitationChance, ...PRECIP)) {
     return {
       ok: false,
@@ -93,6 +106,12 @@ function validateDay(v: unknown, path: string): Result<DayForecast> {
   for (let i = 0; i < v.hours.length; i++) {
     const h = validateHour(v.hours[i], `${path}.hours[${i}]`);
     if (!h.ok) return h;
+    if (!h.value.time.startsWith(v.date)) {
+      return {
+        ok: false,
+        error: `${path}.hours[${i}].time: data godziny musi zgadzać się z day.date`,
+      };
+    }
     hours.push(h.value);
   }
   return {

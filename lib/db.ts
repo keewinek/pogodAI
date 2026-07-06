@@ -102,12 +102,27 @@ function dedupeLocations(locations: Location[]): Location[] {
   return kept;
 }
 
+async function deleteVerifyDataForLocation(
+  kv: Deno.Kv,
+  id: string,
+): Promise<void> {
+  for await (const entry of kv.list({ prefix: [VERIFY_PENDING_KEY, id] })) {
+    await kv.delete(entry.key);
+  }
+  for await (const entry of kv.list({ prefix: [VERIFY_DONE_KEY, id] })) {
+    await kv.delete(entry.key);
+  }
+  await kv.delete([ACCURACY_STATS_KEY, id]);
+}
+
 export async function listLocations(): Promise<Location[]> {
   const kv = await getKv();
-  const res = await kv.get<Location[]>(LOCATIONS_KEY);
-  const locations = res.value ?? [];
-  const deduped = dedupeLocations(locations);
-  if (deduped.length < locations.length) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const res = await kv.get<Location[]>(LOCATIONS_KEY);
+    const locations = res.value ?? [];
+    const deduped = dedupeLocations(locations);
+    if (deduped.length === locations.length) return deduped;
+
     const removedIds = locations
       .filter((l) => !deduped.some((d) => d.id === l.id))
       .map((l) => l.id);
@@ -115,9 +130,16 @@ export async function listLocations(): Promise<Location[]> {
     for (const id of removedIds) {
       atomic.delete([FORECAST_KEY, id]);
     }
-    await atomic.commit();
+    const commit = await atomic.commit();
+    if (!commit.ok) continue;
+
+    for (const id of removedIds) {
+      await deleteVerifyDataForLocation(kv, id);
+    }
+    return deduped;
   }
-  return deduped;
+  const res = await kv.get<Location[]>(LOCATIONS_KEY);
+  return dedupeLocations(res.value ?? []);
 }
 
 export async function getLocation(id: string): Promise<Location | null> {
@@ -178,13 +200,12 @@ export async function deleteLocation(id: string): Promise<boolean> {
       .commit();
     if (!commit.ok) continue;
 
-    for await (const entry of kv.list({ prefix: [VERIFY_PENDING_KEY, id] })) {
-      await kv.delete(entry.key);
+    try {
+      await deleteVerifyDataForLocation(kv, id);
+      await rebuildGlobalAccuracyStats();
+    } catch {
+      // Lokalizacja usunięta — ewentualne osierocone klucze weryfikacji są nieszkodliwe.
     }
-    for await (const entry of kv.list({ prefix: [VERIFY_DONE_KEY, id] })) {
-      await kv.delete(entry.key);
-    }
-    await rebuildGlobalAccuracyStats();
     return true;
   }
   throw new Error("Nie udało się usunąć lokalizacji (konflikt zapisu).");
@@ -277,6 +298,19 @@ export async function deletePendingVerification(
 ): Promise<void> {
   const kv = await getKv();
   await kv.delete([VERIFY_PENDING_KEY, locationId, validTime]);
+}
+
+export async function getVerifiedPair(
+  locationId: string,
+  validTime: string,
+): Promise<VerifiedPair | null> {
+  const kv = await getKv();
+  const res = await kv.get<VerifiedPair>([
+    VERIFY_DONE_KEY,
+    locationId,
+    validTime,
+  ]);
+  return res.value;
 }
 
 export async function saveVerifiedPair(pair: VerifiedPair): Promise<void> {

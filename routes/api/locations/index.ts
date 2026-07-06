@@ -24,15 +24,22 @@ export const handler = define.handlers({
       return errorJson("Nie udało się utworzyć id z podanej nazwy.", 400);
     }
 
-    const result = await addLocation({
-      id,
-      name: parsed.value.name,
-      lat: parsed.value.lat,
-      lon: parsed.value.lon,
-      createdAt: new Date().toISOString(),
-    });
+    try {
+      const result = await addLocation({
+        id,
+        name: parsed.value.name,
+        lat: parsed.value.lat,
+        lon: parsed.value.lon,
+        createdAt: new Date().toISOString(),
+      });
 
-    if (!result.ok) return errorJson(result.error, result.status);
-    return json(result.location, 201);
+      if (!result.ok) return errorJson(result.error, result.status);
+      return json(result.location, 201);
+    } catch {
+      return errorJson(
+        "Nie udało się zapisać lokalizacji — spróbuj ponownie.",
+        503,
+      );
+    }
   },
 });

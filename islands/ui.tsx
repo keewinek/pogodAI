@@ -48,7 +48,7 @@ export function LocationPicker(
         onClick={() => setOpen(!open)}
         class="location-picker-btn"
       >
-        <span>{current?.name ?? currentId}</span>
+        <span>{current?.name ?? "Nieznana lokalizacja"}</span>
         <span
           class={`chevron chevron-down transition-transform ${
             open ? "rotate-[225deg]" : ""
@@ -99,7 +99,7 @@ export function LocationGate({ locations }: { locations: Location[] }) {
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, []);
+  }, [locations]);
 
   const choose = (id: string) => {
     localStorage.setItem(STORAGE_KEY, id);
@@ -217,6 +217,7 @@ export function LocationEditor(
   const [message, setMessage] = useState<
     { kind: "ok" | "error"; text: string } | null
   >(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query.trim();
@@ -231,12 +232,23 @@ export function LocationEditor(
         const res = await fetch(
           `/api/locations/search?q=${encodeURIComponent(q)}`,
         );
+        if (q !== query.trim()) return;
         const data = await res.json();
-        if (res.ok) setResults(data.results ?? []);
+        if (!res.ok) {
+          setResults([]);
+          setMessage({
+            kind: "error",
+            text: data.error ?? "Błąd wyszukiwania.",
+          });
+          return;
+        }
+        setResults(data.results ?? []);
       } catch {
-        /* ignore transient search errors */
+        if (q !== query.trim()) return;
+        setResults([]);
+        setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
       } finally {
-        setSearching(false);
+        if (q === query.trim()) setSearching(false);
       }
     }, 300);
 
@@ -343,11 +355,13 @@ export function LocationEditor(
 
   const remove = async (loc: Location) => {
     if (!confirm(`Usunąć lokalizację „${loc.name}"?`)) return;
+    if (removingId) return;
     setMessage(null);
+    setRemovingId(loc.id);
     try {
       const res = await fetch(`/api/locations/${loc.id}`, { method: "DELETE" });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setMessage({
           kind: "error",
           text: data.error ?? "Nie udało się usunąć.",
@@ -360,6 +374,8 @@ export function LocationEditor(
       }
     } catch {
       setMessage({ kind: "error", text: "Błąd sieci — spróbuj ponownie." });
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -384,9 +400,10 @@ export function LocationEditor(
                     type="button"
                     aria-label={`Usuń lokalizację ${l.name}`}
                     onClick={() => remove(l)}
+                    disabled={removingId === l.id}
                     class="btn-danger shrink-0"
                   >
-                    Usuń
+                    {removingId === l.id ? "Usuwam…" : "Usuń"}
                   </button>
                 </div>
               ))}
@@ -416,7 +433,7 @@ export function LocationEditor(
           {results.length > 0 && (
             <ul class="search-results">
               {results.map((place) => (
-                <li key={`${place.name}-${place.lat}`}>
+                <li key={`${place.name}-${place.lat}-${place.lon}`}>
                   <button
                     type="button"
                     onClick={() => pick(place)}

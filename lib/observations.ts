@@ -1,4 +1,4 @@
-import { warsawLocalToDate } from "./verification.ts";
+import { tryWarsawLocalToDate } from "./verification.ts";
 
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -18,7 +18,8 @@ interface OpenMeteoResponse {
 }
 
 /** Mapuje ISO z Open-Meteo (Warsaw) na klucz YYYY-MM-DDTHH:00. */
-export function openMeteoTimeToKey(isoTime: string): string {
+export function openMeteoTimeToKey(isoTime: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(isoTime)) return null;
   return isoTime.slice(0, 13) + ":00";
 }
 
@@ -27,6 +28,13 @@ export async function fetchHourlyObservations(
   lon: number,
   hoursBack = 72,
 ): Promise<Map<string, HourlyObservation> | null> {
+  if (
+    !Number.isFinite(lat) || !Number.isFinite(lon) ||
+    lat < -90 || lat > 90 || lon < -180 || lon > 180
+  ) {
+    return null;
+  }
+
   const url = new URL(OPEN_METEO_URL);
   url.searchParams.set("latitude", String(lat));
   url.searchParams.set("longitude", String(lon));
@@ -53,9 +61,10 @@ export async function fetchHourlyObservations(
       const precip = precips[i];
       if (temp == null || precip == null) continue;
       const key = openMeteoTimeToKey(times[i]);
+      if (!key) continue;
       map.set(key, { time: key, temperature: temp, precipitation: precip });
     }
-    return map;
+    return map.size > 0 ? map : null;
   } catch {
     return null;
   } finally {
@@ -68,6 +77,7 @@ export function observationShouldExist(
   validTime: string,
   now = new Date(),
 ): boolean {
-  const validMs = warsawLocalToDate(validTime).getTime();
-  return now.getTime() >= validMs + 3_600_000;
+  const validDate = tryWarsawLocalToDate(validTime);
+  if (!validDate) return false;
+  return now.getTime() >= validDate.getTime() + 3_600_000;
 }

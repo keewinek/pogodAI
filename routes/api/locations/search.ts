@@ -11,7 +11,10 @@ export const handler = define.handlers({
     if (lat !== null && lon !== null) {
       const latN = Number(lat);
       const lonN = Number(lon);
-      if (!Number.isFinite(latN) || !Number.isFinite(lonN)) {
+      if (
+        !Number.isFinite(latN) || !Number.isFinite(lonN) ||
+        latN < -90 || latN > 90 || lonN < -180 || lonN > 180
+      ) {
         return errorJson("Nieprawidłowe współrzędne.", 400);
       }
       try {

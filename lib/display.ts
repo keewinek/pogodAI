@@ -196,11 +196,15 @@ const DAY_NAMES = ["Niedz.", "Pon.", "Wt.", "Śr.", "Czw.", "Pt.", "Sob."];
 
 /** Etykieta dnia w UI: „Pon. 6 lip”. */
 export function dayDateLabel(date: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!match) return date;
   const d = new Date(`${date}T12:00:00Z`);
-  const [, m, day] = date.split("-");
-  return `${DAY_NAMES[d.getUTCDay()]} ${Number(day)} ${
-    MONTHS_SHORT[Number(m) - 1]
-  }`;
+  if (Number.isNaN(d.getTime())) return date;
+  const m = match[2];
+  const day = match[3];
+  const monthLabel = MONTHS_SHORT[Number(m) - 1];
+  if (!monthLabel) return date;
+  return `${DAY_NAMES[d.getUTCDay()]} ${Number(day)} ${monthLabel}`;
 }
 
 export function warsawToday(date = new Date()): string {
@@ -213,9 +217,10 @@ export function warsawToday(date = new Date()): string {
 }
 
 export function relativeTime(iso: string, now = new Date()): string {
-  const diffMin = Math.round(
-    (now.getTime() - new Date(iso).getTime()) / 60_000,
-  );
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "nieznany czas";
+  const diffMin = Math.round((now.getTime() - then) / 60_000);
+  if (!Number.isFinite(diffMin)) return "nieznany czas";
   if (diffMin < 1) return "przed chwilą";
   if (diffMin < 60) return `${diffMin} min temu`;
   const diffH = Math.floor(diffMin / 60);
@@ -228,7 +233,9 @@ export function relativeTime(iso: string, now = new Date()): string {
 }
 
 export function ageMinutes(iso: string, now = new Date()): number {
-  return Math.round((now.getTime() - new Date(iso).getTime()) / 60_000);
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return Infinity;
+  return Math.round((now.getTime() - then) / 60_000);
 }
 
 // --- forecast ---
@@ -239,7 +246,7 @@ export function upcomingHours(
   currentHour: number,
 ): HourForecast[] {
   const todayIdx = days.findIndex((d) => d.date === todayDate);
-  if (todayIdx === -1) return days[0]?.hours ?? [];
+  if (todayIdx === -1) return [];
 
   const result = days[todayIdx].hours.filter((h) =>
     parseInt(h.time.slice(11, 13), 10) >= currentHour
@@ -253,14 +260,14 @@ export function upcomingHours(
 }
 
 export function dayTemps(day: DayForecast): { min: number; max: number } {
-  const hasDayRange = day.tempMax > day.tempMin ||
-    (day.tempMin !== 0 && day.tempMax !== 0);
-  if (hasDayRange) return { min: day.tempMin, max: day.tempMax };
-  if (day.hours.length === 0) {
+  if (day.hours.length > 0) {
+    const temps = day.hours.map((h) => h.temperature);
+    return { min: Math.min(...temps), max: Math.max(...temps) };
+  }
+  if (day.tempMax >= day.tempMin) {
     return { min: day.tempMin, max: day.tempMax };
   }
-  const temps = day.hours.map((h) => h.temperature);
-  return { min: Math.min(...temps), max: Math.max(...temps) };
+  return { min: day.tempMin, max: day.tempMax };
 }
 
 export function dayWind(day: DayForecast): number {

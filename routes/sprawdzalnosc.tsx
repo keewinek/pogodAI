@@ -48,9 +48,9 @@ export default define.page<typeof handler>(
 
     return (
       <main class="max-w-md mx-auto px-5 pt-2 pb-12 flex flex-col gap-8 min-h-dvh">
-        <div class="flex items-center gap-3">
-          <a href={backHref} class="btn-ghost shrink-0 px-3" aria-label="Wróć">
-            ← Wróć
+        <div class="page-header">
+          <a href={backHref} class="back-link" aria-label="Wróć">
+            <span class="back-arrow" aria-hidden="true" />
           </a>
         </div>
         <AccuracyPageContent

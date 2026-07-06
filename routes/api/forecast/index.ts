@@ -31,7 +31,16 @@ export const handler = define.handlers({
       return errorJson("Nie znaleziono lokalizacji o podanym locationId.", 404);
     }
 
-    await archivePendingVerifications(parsed.value);
+    try {
+      await archivePendingVerifications(parsed.value);
+    } catch (err) {
+      return errorJson(
+        err instanceof Error
+          ? err.message
+          : "Nie udało się zarchiwizować próbek weryfikacji.",
+        400,
+      );
+    }
     await setForecast(parsed.value);
     return json({ ok: true });
   },

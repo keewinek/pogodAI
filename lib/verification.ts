@@ -72,10 +72,25 @@ export function emptyAccuracyStats(): AccuracyStats {
 
 /** Konwersja lokalnego czasu Warsaw (YYYY-MM-DDTHH:00) na Date UTC. */
 export function warsawLocalToDate(isoLocal: string): Date {
+  const date = tryWarsawLocalToDate(isoLocal);
+  if (!date) throw new Error(`Nieprawidłowy czas Warsaw: ${isoLocal}`);
+  return date;
+}
+
+/** Bezpieczna wersja — zwraca null zamiast rzucać. */
+export function tryWarsawLocalToDate(isoLocal: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):00$/.exec(isoLocal);
-  if (!match) throw new Error(`Nieprawidłowy czas Warsaw: ${isoLocal}`);
-  const target = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:00:00`;
-  const dayMs = Date.parse(`${match[1]}-${match[2]}-${match[3]}T12:00:00Z`);
+  if (!match) return null;
+  const [, y, mo, d, h] = match;
+  const month = Number(mo);
+  const day = Number(d);
+  const hour = Number(h);
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23) {
+    return null;
+  }
+  const target = `${y}-${mo}-${d}T${h}:00:00`;
+  const dayMs = Date.parse(`${y}-${mo}-${d}T12:00:00Z`);
+  if (!Number.isFinite(dayMs)) return null;
   const fmt = new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Warsaw",
     year: "numeric",
@@ -91,19 +106,22 @@ export function warsawLocalToDate(isoLocal: string): Date {
     const formatted = fmt.format(candidate).replace(" ", "T");
     if (formatted.startsWith(target)) return candidate;
   }
-  throw new Error(`Nie udało się rozwiązać czasu Warsaw: ${isoLocal}`);
+  return null;
 }
 
 export function computeLeadHours(
   generatedAt: string,
   validTime: string,
-): number {
+): number | null {
   const genMs = new Date(generatedAt).getTime();
-  const validMs = warsawLocalToDate(validTime).getTime();
-  return Math.max(0, Math.round((validMs - genMs) / 3_600_000));
+  if (!Number.isFinite(genMs)) return null;
+  const validDate = tryWarsawLocalToDate(validTime);
+  if (!validDate) return null;
+  return Math.max(0, Math.round((validDate.getTime() - genMs) / 3_600_000));
 }
 
 export function leadBucket(leadHours: number): LeadBucket | null {
+  if (!Number.isFinite(leadHours)) return null;
   if (leadHours < 12) return "hourly";
   if (leadHours < 36) return "day1";
   if (leadHours < 60) return "day2";
@@ -140,7 +158,9 @@ export function sampleArchiveHours(forecast: Forecast): PendingVerification[] {
 
   for (const day of forecast.days.slice(0, 3)) {
     for (const hour of day.hours) {
+      if (!hour.time.startsWith(day.date)) continue;
       const leadHours = computeLeadHours(forecast.generatedAt, hour.time);
+      if (leadHours === null) continue;
       const bucket = leadBucket(leadHours);
       if (
         bucket &&
@@ -288,7 +308,10 @@ export function buildVerifiedPair(
     actualRain,
   );
   const tScore = scoreTemperature(pending.predictedTemp, actualTemp);
-  const bucket = leadBucket(pending.leadHours) ?? "day3";
+  const bucket = leadBucket(pending.leadHours);
+  if (!bucket) {
+    throw new Error(`Nieprawidłowy leadHours: ${pending.leadHours}`);
+  }
 
   return {
     locationId,
@@ -326,8 +349,9 @@ export function isPendingStale(
   pending: PendingVerification,
   now = new Date(),
 ): boolean {
-  const validMs = warsawLocalToDate(pending.validTime).getTime();
-  const ageMs = now.getTime() - validMs;
+  const validDate = tryWarsawLocalToDate(pending.validTime);
+  if (!validDate) return true;
+  const ageMs = now.getTime() - validDate.getTime();
   return ageMs > STALE_PENDING_DAYS * 24 * 3_600_000;
 }
 
@@ -335,8 +359,9 @@ export function isReadyForVerification(
   validTime: string,
   now = new Date(),
 ): boolean {
-  const validMs = warsawLocalToDate(validTime).getTime();
-  return now.getTime() >= validMs + 3_600_000;
+  const validDate = tryWarsawLocalToDate(validTime);
+  if (!validDate) return false;
+  return now.getTime() >= validDate.getTime() + 3_600_000;
 }
 
 export function formatAccuracyPl(value: number): string {
@@ -360,8 +385,11 @@ export function leadBucketLabel(bucket: LeadBucket): string {
 }
 
 export function formatValidTime(validTime: string): string {
-  const [date, time] = validTime.split("T");
-  const [, m, d] = date.split("-");
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):00$/.exec(validTime);
+  if (!match) return validTime;
+  const m = match[2];
+  const d = match[3];
+  const hour = match[4];
   const MONTHS = [
     "sty",
     "lut",
@@ -376,5 +404,7 @@ export function formatValidTime(validTime: string): string {
     "lis",
     "gru",
   ];
-  return `${Number(d)} ${MONTHS[Number(m) - 1]}, ${time}`;
+  const monthLabel = MONTHS[Number(m) - 1];
+  if (!monthLabel) return validTime;
+  return `${Number(d)} ${monthLabel}, ${hour}:00`;
 }
