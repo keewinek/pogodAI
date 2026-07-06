@@ -127,7 +127,7 @@ export function FreshnessFooter(
   { generatedAt, sources }: { generatedAt: string; sources: string[] },
 ) {
   const age = ageMinutes(generatedAt);
-  let freshnessClass = "muted";
+  const freshnessClass = "muted";
   let warning: string | null = null;
   if (age > 180) {
     warning = "automatyzacja mogła się wysypać";

@@ -135,7 +135,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
 
   useEffect(() => {
     if (!playing || !mapReady || frames.length < 2) return;
-    timerRef.current = window.setInterval(() => {
+    timerRef.current = globalThis.setInterval(() => {
       setIdx((i) => (i + 1) % frames.length);
     }, FRAME_DELAY_MS);
     return () => clearInterval(timerRef.current);
@@ -187,7 +187,7 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
         });
 
         mapInstance.current = map;
-        const loadTimeout = window.setTimeout(() => {
+        const loadTimeout = globalThis.setTimeout(() => {
           if (!cancelled) {
             setError("Nie udało się załadować mapy radaru.");
           }
@@ -337,8 +337,29 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
           type="button"
           class="btn-ghost radar-btn"
           onClick={() => setPlaying((p) => !p)}
+          aria-label={playing ? "Zatrzymaj" : "Odtwórz"}
         >
-          {playing ? "Pauza" : "Odtwórz"}
+          {playing
+            ? (
+              <svg
+                class="radar-btn-icon"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <rect x="6" y="6" width="12" height="12" rx="1" />
+              </svg>
+            )
+            : (
+              <svg
+                class="radar-btn-icon"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M8 5.5v13a1 1 0 0 0 1.52.85l10.5-6.5a1 1 0 0 0 0-1.7l-10.5-6.5A1 1 0 0 0 8 5.5Z" />
+              </svg>
+            )}
         </button>
         <span class="radar-time">
           {isNow ? "Teraz · " : isForecast ? "Prognoza · " : ""}
