@@ -7,6 +7,9 @@
 
 # Fresh build directory
 _fresh/
+
+# Automation run artifacts (forecast research cache)
+automation/tmp/
 # npm + other dependencies
 node_modules/
 vendor/
