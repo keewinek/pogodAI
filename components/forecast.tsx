@@ -17,14 +17,9 @@ export function Hero(
     verdict.precipitationChance,
   );
   const label = conditionLabel(emoji);
-  const labelClass = label === "Słonecznie"
-    ? "hero-condition--warm"
-    : label === "Pogodna noc"
-    ? "hero-condition--cool"
-    : "";
   return (
     <section class="flex flex-col items-center pt-2 pb-1 text-center">
-      <p class={`hero-condition ${labelClass}`}>
+      <p class="hero-condition">
         {label}
       </p>
       <div class="temp-hero mt-2">{Math.round(verdict.temperature)}°</div>
@@ -50,17 +45,13 @@ export function Hero(
 
 export function VerdictCard({ verdict }: { verdict: Verdict }) {
   return (
-    <section class="verdict-block px-1 py-1">
-      <div class="verdict-accent">
-        <p class="verdict-text">
-          {verdict.text}
-        </p>
-      </div>
-      <div class="mt-4">
-        <span class="precip-badge">
+    <section class="verdict-block">
+      <p class="verdict-text">
+        {verdict.text}
+      </p>
+      <p class="precip-badge mt-3">
           {Math.round(verdict.precipitationChance)}% szansa opadów
-        </span>
-      </div>
+      </p>
     </section>
   );
 }
@@ -87,7 +78,7 @@ export function HourlyStrip(
           return (
             <div
               key={h.time}
-              class={`hour-slot ${isNow ? "hour-slot-active" : ""}`}
+              class={`hour-slot`}
             >
               <span
                 class={`hour-time ${isNow ? "hour-time-active" : ""}`}
@@ -123,10 +114,8 @@ export function FreshnessFooter(
   let freshnessClass = "muted";
   let warning: string | null = null;
   if (age > 180) {
-    freshnessClass = "text-danger";
     warning = "automatyzacja mogła się wysypać";
   } else if (age > 90) {
-    freshnessClass = "text-warn";
     warning = "dane mogą być nieaktualne";
   }
 

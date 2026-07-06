@@ -307,7 +307,7 @@ export function LocationEditor(
         )}
 
       <form onSubmit={add} class="grouped p-5 flex flex-col gap-4">
-        <h2 class="text-[13px] font-semibold muted uppercase tracking-wide">
+        <h2 class="text-[13px] font-medium muted">
           Dodaj
         </h2>
         <label class="flex flex-col gap-2">
