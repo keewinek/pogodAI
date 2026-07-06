@@ -95,13 +95,14 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<MapApi | null>(null);
   const radarCountRef = useRef(0);
-  const libsReady = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
+    const framesPromise = loadRainFrames();
+    const libsPromise = ensureMapLibs().catch(() => null);
 
-    loadRainFrames()
-      .then((data) => {
+    Promise.all([framesPromise, libsPromise])
+      .then(([data]) => {
         if (cancelled) return;
         radarCountRef.current = data.frames.findIndex((f) => f.kind === "forecast");
         if (radarCountRef.current === -1) {
@@ -128,12 +129,12 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   }, []);
 
   useEffect(() => {
-    if (!playing || frames.length < 2) return;
+    if (!playing || !mapReady || frames.length < 2) return;
     timerRef.current = window.setInterval(() => {
       setIdx((i) => (i + 1) % frames.length);
     }, FRAME_DELAY_MS);
     return () => clearInterval(timerRef.current);
-  }, [playing, frames.length]);
+  }, [playing, mapReady, frames.length]);
 
   useEffect(() => {
     if (!frames.length || !mapRef.current || mapInstance.current) return;
@@ -145,9 +146,12 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
         const { maplibregl, omProtocol } = await ensureMapLibs();
         if (cancelled || !mapRef.current) return;
 
-        if (!libsReady.current) {
+        const win = window as unknown as {
+          __pogodaiOmProtocol?: boolean;
+        };
+        if (!win.__pogodaiOmProtocol) {
           maplibregl.addProtocol("om", omProtocol);
-          libsReady.current = true;
+          win.__pogodaiOmProtocol = true;
         }
 
         const map = new maplibregl.Map({
@@ -235,17 +239,21 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
         map.removeLayer("precip");
         map.removeSource("precip");
       }
-      map.addSource("precip", {
-        type: "raster",
-        url: `om://${omFrameUrl(timeStep)}`,
-        tileSize: 256,
-      });
-      map.addLayer({
-        id: "precip",
-        type: "raster",
-        source: "precip",
-        paint: { "raster-opacity": 0.82 },
-      });
+      try {
+        map.addSource("precip", {
+          type: "raster",
+          url: `om://${omFrameUrl(timeStep)}`,
+          tileSize: 256,
+        });
+        map.addLayer({
+          id: "precip",
+          type: "raster",
+          source: "precip",
+          paint: { "raster-opacity": 0.82 },
+        });
+      } catch {
+        // Zostaw sam podkład OSM, gdy warstwa prognozy się nie załaduje.
+      }
     };
 
     if (frame.kind === "radar") {
@@ -259,7 +267,6 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   useEffect(() => () => {
     mapInstance.current?.remove();
     mapInstance.current = null;
-    libsReady.current = false;
   }, []);
 
   if (loading) {

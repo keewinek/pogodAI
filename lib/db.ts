@@ -99,6 +99,16 @@ export async function addLocation(
         error: "Lokalizacja o tym id już istnieje.",
       };
     }
+    const near = (a: number, b: number) => Math.abs(a - b) < 0.02;
+    if (
+      locations.some((l) => near(l.lat, location.lat) && near(l.lon, location.lon))
+    ) {
+      return {
+        ok: false,
+        status: 409,
+        error: "Lokalizacja w tym miejscu już istnieje.",
+      };
+    }
     const commit = await kv.atomic()
       .check(res)
       .set(LOCATIONS_KEY, [...locations, location])
