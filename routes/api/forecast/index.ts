@@ -1,6 +1,6 @@
 import { define } from "@/utils.ts";
 import { getLocation, setForecast } from "@/lib/db.ts";
-import { errorJson, json } from "@/lib/http.ts";
+import { errorJson, json } from "@/lib/db.ts";
 import { validateForecast } from "@/lib/validate.ts";
 
 const MAX_BODY_BYTES = 60 * 1024; // limit wartości Deno KV to 64 KiB

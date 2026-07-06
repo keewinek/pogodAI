@@ -1,14 +1,13 @@
 import { define } from "../utils.ts";
 import { listLocations } from "../lib/db.ts";
-import { DEFAULT_THEME } from "../lib/theme.ts";
-import LocationGate from "../islands/LocationGate.tsx";
+import { DEFAULT_THEME } from "../lib/display.ts";
+import { LocationGate } from "../islands/ui.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
     ctx.state.theme = DEFAULT_THEME;
     ctx.state.title = "PogodAI";
-    const locations = await listLocations();
-    return { data: { locations } };
+    return { data: { locations: await listLocations() } };
   },
 });
 
@@ -20,9 +19,7 @@ export default define.page<typeof handler>(function Home({ data }) {
         <h1 class="text-[34px] font-semibold tracking-tight">PogodAI</h1>
         <p class="mt-2 text-[17px] muted">Jedna prognoza z wielu źródeł</p>
       </header>
-
       <LocationGate locations={data.locations} />
-
       <p class="text-center pt-2">
         <a href="/lokalizacje" class="btn-ghost inline-flex items-center gap-2">
           Edytuj lokalizacje

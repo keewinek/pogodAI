@@ -2,6 +2,16 @@ import type { DayForecast, Forecast, HourForecast, Verdict } from "./types.ts";
 
 type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replaceAll("ł", "l")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }

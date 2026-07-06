@@ -1,34 +1,25 @@
 import { define } from "../utils.ts";
+import { DEFAULT_THEME } from "../lib/display.ts";
 import { listLocations } from "../lib/db.ts";
-import { DEFAULT_THEME } from "../lib/theme.ts";
-import LocationEditor from "../islands/LocationEditor.tsx";
+import { LocationEditor } from "../islands/ui.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
     ctx.state.theme = DEFAULT_THEME;
-    ctx.state.title = "PogodAI — lokalizacje";
-    const locations = await listLocations();
-    return { data: { locations } };
+    ctx.state.title = "PogodAI — Lokalizacje";
+    return { data: { locations: await listLocations() } };
   },
 });
 
-export default define.page<typeof handler>(function Lokalizacje({ data }) {
+export default define.page<typeof handler>(function LocationsPage({ data }) {
   return (
-    <main class="max-w-md mx-auto px-5 pt-4 pb-12 flex flex-col gap-8">
-      <header class="flex items-center gap-3 pt-2">
-        <a
-          href="/"
-          aria-label="Wróć"
-          class="btn-ghost flex items-center justify-center w-11 h-11 p-0 rounded-full bg-white/8"
-        >
-          <span
-            class="chevron rotate-[135deg] -mr-0.5"
-            aria-hidden="true"
-          />
+    <main class="max-w-md mx-auto px-5 pt-6 pb-12 flex flex-col gap-8 min-h-dvh">
+      <header class="flex items-center gap-3">
+        <a href="/" class="btn-ghost shrink-0" aria-label="Wróć">
+          ←
         </a>
-        <h1 class="text-[28px] font-semibold tracking-tight">Lokalizacje</h1>
+        <h1 class="text-[22px] font-semibold tracking-tight">Lokalizacje</h1>
       </header>
-
       <LocationEditor initialLocations={data.locations} />
     </main>
   );

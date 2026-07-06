@@ -1,6 +1,6 @@
 import { define } from "@/utils.ts";
 import { getForecast } from "@/lib/db.ts";
-import { errorJson, json } from "@/lib/http.ts";
+import { errorJson, json } from "@/lib/db.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {

@@ -1,5 +1,5 @@
 import { define } from "../utils.ts";
-import { DEFAULT_THEME } from "../lib/theme.ts";
+import { DEFAULT_THEME } from "../lib/display.ts";
 
 export default define.page(function App({ Component, state }) {
   const theme = state.theme ?? DEFAULT_THEME;

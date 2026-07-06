@@ -1,6 +1,5 @@
 import { define } from "@/utils.ts";
-import { countForecasts, listLocations, pingKv } from "@/lib/db.ts";
-import { json } from "@/lib/http.ts";
+import { countForecasts, json, listLocations, pingKv } from "@/lib/db.ts";
 
 export const handler = define.handlers({
   async GET() {

@@ -1,8 +1,6 @@
 import { define } from "@/utils.ts";
-import { addLocation, listLocations } from "@/lib/db.ts";
-import { errorJson, json } from "@/lib/http.ts";
-import { validateNewLocation } from "@/lib/validate.ts";
-import { slugify } from "@/lib/slug.ts";
+import { addLocation, errorJson, json, listLocations } from "@/lib/db.ts";
+import { slugify, validateNewLocation } from "@/lib/validate.ts";
 
 export const handler = define.handlers({
   async GET() {

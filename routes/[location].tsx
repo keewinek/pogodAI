@@ -1,15 +1,21 @@
 import { HttpError } from "fresh";
 import { define } from "../utils.ts";
 import { getForecast, getLocation, listLocations } from "../lib/db.ts";
-import { DEFAULT_THEME, themeFor, warsawHour } from "../lib/theme.ts";
-import { dayLabel, warsawToday } from "../lib/time.ts";
-import { upcomingHours } from "../lib/forecast-utils.ts";
-import { Hero } from "../components/Hero.tsx";
-import { VerdictCard } from "../components/VerdictCard.tsx";
-import { HourlyStrip } from "../components/HourlyStrip.tsx";
-import { FreshnessFooter } from "../components/FreshnessFooter.tsx";
-import LocationPicker from "../islands/LocationPicker.tsx";
-import DailyAccordion from "../islands/DailyAccordion.tsx";
+import {
+  dayLabel,
+  DEFAULT_THEME,
+  themeFor,
+  upcomingHours,
+  warsawHour,
+  warsawToday,
+} from "../lib/display.ts";
+import {
+  FreshnessFooter,
+  Hero,
+  HourlyStrip,
+  VerdictCard,
+} from "../components/forecast.tsx";
+import { DailyAccordion, LocationPicker } from "../islands/ui.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -54,14 +60,12 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
           <>
             <Hero verdict={forecast.verdict} />
             <VerdictCard verdict={forecast.verdict} />
-
             <section>
               <h2 class="section-label">Godzinowa</h2>
               <HourlyStrip
                 hours={upcomingHours(forecast.days, today, warsawHour())}
               />
             </section>
-
             <section>
               <h2 class="section-label">7 dni</h2>
               <DailyAccordion
@@ -69,7 +73,6 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
                 labels={forecast.days.map((d) => dayLabel(d.date, today))}
               />
             </section>
-
             <FreshnessFooter
               generatedAt={forecast.generatedAt}
               sources={forecast.sources}

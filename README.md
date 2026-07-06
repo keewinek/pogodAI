@@ -25,14 +25,14 @@ Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR + isl
 | GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji        |
 | POST   | `/api/forecast`             | Zapis prognozy (automatyzacja)  |
 | GET    | `/api/health`               | Status KV i liczba prognoz      |
-| GET    | `/api/geocode/search?q=`    | Autocomplete miejscowości (PL)  |
-| GET    | `/api/geocode/reverse`      | Reverse geocoding (GPS → nazwa) |
+| GET    | `/api/geocode?q=`           | Autocomplete miejscowości (PL)  |
+| GET    | `/api/geocode?lat=&lon=`    | Reverse geocoding (GPS → nazwa) |
 
 ## Development
 
 ```bash
 deno task dev      # dev server
-deno task check    # fmt + lint + typy + testy
+deno task check    # fmt + lint + typy
 deno task build    # build produkcyjny
 deno task start    # serwuj build (port 8000)
 ```

@@ -1,6 +1,5 @@
 import { define } from "@/utils.ts";
-import { deleteLocation } from "@/lib/db.ts";
-import { errorJson, json } from "@/lib/http.ts";
+import { deleteLocation, errorJson, json } from "@/lib/db.ts";
 
 export const handler = define.handlers({
   async DELETE(ctx) {
