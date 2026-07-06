@@ -18,9 +18,9 @@ export function Hero(
   );
   const label = conditionLabel(emoji);
   const labelClass = label === "Słonecznie"
-    ? "text-amber-100/90"
+    ? "hero-condition--warm"
     : label === "Pogodna noc"
-    ? "text-indigo-200/80"
+    ? "hero-condition--cool"
     : "";
   return (
     <section class="flex flex-col items-center pt-2 pb-1 text-center">
@@ -55,7 +55,7 @@ export function VerdictCard({ verdict }: { verdict: Verdict }) {
   return (
     <section class="grouped px-5 py-4">
       <div class="verdict-accent">
-        <p class="text-[17px] leading-relaxed font-medium text-white/95">
+        <p class="text-[17px] leading-relaxed font-medium verdict-text">
           {verdict.text}
         </p>
       </div>
@@ -77,7 +77,7 @@ export function HourlyStrip(
 
   const strip = (
     <div class="overflow-x-auto no-scrollbar">
-      <div class={`flex w-max ${embedded ? "gap-1 px-1" : "gap-1 px-1"}`}>
+      <div class="flex w-max gap-1 px-1">
         {hours.map((h, i) => {
           const isNow = !embedded && i === 0;
           const hour = parseInt(h.time.slice(11, 13), 10);
@@ -90,21 +90,17 @@ export function HourlyStrip(
           return (
             <div
               key={h.time}
-              class={`flex flex-col items-center gap-1 min-w-[3.25rem] px-2 py-2 rounded-xl ${
-                isNow ? "bg-white/10" : ""
-              }`}
+              class={`hour-slot ${isNow ? "hour-slot-active" : ""}`}
             >
               <span
-                class={`text-[12px] font-medium tabular-nums ${
-                  isNow ? "text-white" : "muted"
-                }`}
+                class={`hour-time ${isNow ? "hour-time-active" : ""}`}
               >
                 {isNow ? "Teraz" : hourLabel(h.time)}
               </span>
               <span class="text-[24px] leading-none" aria-hidden="true">
                 {emoji}
               </span>
-              <span class="text-[16px] font-semibold tabular-nums">
+              <span class="hour-temp">
                 {Math.round(h.temperature)}°
               </span>
               {h.precipitationChance > 0 && (
@@ -120,7 +116,7 @@ export function HourlyStrip(
   );
 
   if (embedded) return strip;
-  return <div class="grouped px-2 py-2">{strip}</div>;
+  return <div class="grouped hour-strip">{strip}</div>;
 }
 
 export function FreshnessFooter(
@@ -130,10 +126,10 @@ export function FreshnessFooter(
   let freshnessClass = "muted";
   let warning: string | null = null;
   if (age > 180) {
-    freshnessClass = "text-red-400/90";
+    freshnessClass = "text-danger";
     warning = "automatyzacja mogła się wysypać";
   } else if (age > 90) {
-    freshnessClass = "text-amber-300/90";
+    freshnessClass = "text-warn";
     warning = "dane mogą być nieaktualne";
   }
 
@@ -142,7 +138,7 @@ export function FreshnessFooter(
       <div class="footer-badge inline-block rounded-full px-4 py-2">
         <p class={`text-[12px] ${freshnessClass}`}>
           Zaktualizowano {relativeTime(generatedAt)}
-          {warning && <span class="block mt-0.5 opacity-90">{warning}</span>}
+          {warning && <span class="block mt-0.5">{warning}</span>}
         </p>
       </div>
       <p class="mt-3 text-[11px] muted leading-relaxed max-w-xs mx-auto px-2">

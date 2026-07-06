@@ -41,7 +41,7 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
   const today = warsawToday();
 
   return (
-    <main class="max-w-md mx-auto px-5 pb-8 flex flex-col gap-8 min-h-dvh">
+    <main class="max-w-md mx-auto px-5 pb-10 flex flex-col gap-6 min-h-dvh">
       <LocationPicker locations={locations} currentId={location.id} />
 
       {!forecast

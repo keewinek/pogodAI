@@ -63,10 +63,10 @@ export function LocationPicker(
               key={l.id}
               type="button"
               onClick={() => choose(l.id)}
-              class={`grouped-row w-full text-left text-[17px] transition hover:bg-white/5 ${
+              class={`grouped-row grouped-row-interactive w-full text-left text-[17px] ${
                 l.id === currentId
-                  ? "font-semibold text-white"
-                  : "text-white/85"
+                  ? "font-semibold text-primary"
+                  : "text-primary"
               }`}
             >
               {l.name}
@@ -79,7 +79,7 @@ export function LocationPicker(
           ))}
           <a
             href="/lokalizacje"
-            class="grouped-row w-full text-[15px] muted hover:bg-white/5 transition"
+            class="grouped-row grouped-row-interactive w-full text-[15px] muted"
           >
             Edytuj lokalizacje
             <span class="chevron ml-auto" aria-hidden="true" />
@@ -124,7 +124,7 @@ export function LocationGate({ locations }: { locations: Location[] }) {
           key={l.id}
           type="button"
           onClick={() => choose(l.id)}
-          class="grouped-row w-full text-left text-[17px] font-medium transition hover:bg-white/[0.04]"
+          class="grouped-row grouped-row-interactive w-full text-left text-[17px] font-medium"
         >
           {l.name}
           <span class="chevron ml-auto" aria-hidden="true" />
@@ -177,7 +177,7 @@ export function DailyAccordion(
                 {precip > 0 ? `${Math.round(precip)}%` : "—"}
               </span>
               <span
-                class={`chevron transition-transform duration-200 opacity-60 ${
+                class={`chevron transition-transform duration-200 ${
                   open ? "rotate-[135deg]" : "chevron-down"
                 }`}
                 aria-hidden="true"
@@ -297,7 +297,7 @@ export function LocationEditor(
                   type="button"
                   aria-label={`Usuń lokalizację ${l.name}`}
                   onClick={() => remove(l)}
-                  class="btn-ghost text-[15px] text-red-400/90 hover:text-red-300 shrink-0"
+                  class="btn-ghost btn-danger shrink-0"
                 >
                   Usuń
                 </button>
@@ -347,14 +347,14 @@ export function LocationEditor(
         <button
           type="submit"
           disabled={busy}
-          class="btn-primary w-full disabled:opacity-40"
+          class="btn-primary w-full"
         >
           {busy ? "Dodawanie…" : "Dodaj lokalizację"}
         </button>
         {message && (
           <p
             class={`text-[15px] ${
-              message.kind === "ok" ? "text-emerald-400/90" : "text-red-400/90"
+              message.kind === "ok" ? "text-success" : "text-danger"
             }`}
           >
             {message.text}
