@@ -1,8 +1,8 @@
 # PogodAI — subagent: prognoza dla jednej lokalizacji
 
-Ten plik jest wywoływany przez orkiestratora (`automation/PROMPT.md`) jako **osobny
-subagent na każdą lokalizację**. Subagent dostaje w promptcie obiekt lokalizacji i
-wykonuje deep research tylko dla niej.
+Ten plik jest wywoływany przez orkiestratora (`automation/PROMPT.md`) jako
+**osobny subagent na każdą lokalizację**. Subagent dostaje w promptcie obiekt
+lokalizacji i wykonuje deep research tylko dla niej.
 
 ## Lokalizacja (wstrzykiwana przez orkiestratora)
 
@@ -15,8 +15,8 @@ wykonuje deep research tylko dla niej.
 }
 ```
 
-Użyj `{id}` jako `locationId` w JSON, `{name}` w wyszukiwaniach, `{lat}` i `{lon}`
-w endpointach.
+Użyj `{id}` jako `locationId` w JSON, `{name}` w wyszukiwaniach, `{lat}` i
+`{lon}` w endpointach.
 
 ## Zadanie
 
@@ -131,8 +131,8 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
   w aplikacji z godzinówki.
 - Godzinówkę zbuduj z Open-Meteo hourly: weź `temperature_2m`,
   `precipitation_probability`, `wind_speed_10m`, `weather_code`; zaokrąglij do
-  liczb całkowitych; `weather_code` → emoji wg WMO: 0→☀️, 1→🌤️, 2–3→⛅, 45–48→🌫️,
-  51–67→🌧️, 71–77→🌨️, 85–86→❄️, 95–99→⛈️, inaczej ☁️.
+  liczb całkowitych; `weather_code` → emoji wg WMO: 0→☀️, 1→🌤️, 2–3→⛅,
+  45–48→🌫️, 51–67→🌧️, 71–77→🌨️, 85–86→❄️, 95–99→⛈️, inaczej ☁️.
 - `time` w strefie Europe/Warsaw.
 - Emoji w `hours[]` z `weather_code` (WMO). Aplikacja wybiera ikonę wg
   hierarchii: **burza → deszcz → wiatr (≥ 60 km/h) → pochmurno → słońce** (w

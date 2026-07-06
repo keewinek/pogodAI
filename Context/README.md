@@ -1,14 +1,21 @@
 # PogodAI — kontekst projektu
 
-Osobista, hiperlokalna pogoda: **Cursor Cloud Automation** co godzinę zbiera
-dane z wielu źródeł, składa JSON i zapisuje przez `POST /api/forecast`.
-Aplikacja (Fresh + Deno KV) tylko wyświetla wynik.
+Osobista, hiperlokalna pogoda: **Cursor Cloud Automation** co godzinę uruchamia
+**subagenta na każdą lokalizację**; subagent zbiera dane z wielu źródeł, składa
+JSON i zapisuje przez `POST /api/forecast`. Aplikacja (Fresh + Deno KV) tylko
+wyświetla wynik.
 
 ## Architektura
 
 ```
-Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR)
+Orkiestrator (cron) → subagent × lokalizacja → POST /api/forecast → Deno KV → Fresh (SSR)
 ```
+
+| Plik                            | Rola                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| `automation/PROMPT.md`          | Orkiestrator — pobiera lokalizacje, uruchamia Task/subagenta |
+| `automation/LOCATION_PROMPT.md` | Subagent — deep research + POST dla jednej lokalizacji       |
+| `automation/VERIFY_PROMPT.md`   | Weryfikacja sprawdzalności (+15 min po pełnej)               |
 
 ## API
 
@@ -17,7 +24,9 @@ Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR)
 | GET    | `/api/locations`            |
 | POST   | `/api/locations`            |
 | DELETE | `/api/locations/:id`        |
+| GET    | `/api/locations/:id`        |
 | GET    | `/api/forecast/:locationId` |
+| GET    | `/api/forecast/status`      |
 | POST   | `/api/forecast`             |
 | GET    | `/api/health`               |
 
@@ -29,7 +38,10 @@ Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh (SSR)
 
 ## Automatyzacja
 
-Prompt: `automation/PROMPT.md` (cron `0 * * * *`).
+- Orkiestrator: `automation/PROMPT.md` (cron `0 * * * *`, wymaga dostępu do
+  repo)
+- Subagent: `automation/LOCATION_PROMPT.md` (jedna lokalizacja na Task)
+- Weryfikacja: `automation/VERIFY_PROMPT.md` (cron `15 * * * *`)
 
 ## Infrastruktura
 

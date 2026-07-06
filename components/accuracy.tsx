@@ -45,13 +45,12 @@ export function AccuracyHeader(
         )}
       {hasData && (
         <p class="mt-1 text-[13px] muted">
-          {globalStats.totalPairs}{" "}
-          {globalStats.totalPairs === 1
+          {globalStats.totalPairs} {globalStats.totalPairs === 1
             ? "para prognoza–obserwacja"
             : globalStats.totalPairs < 5
             ? "pary prognoza–obserwacja"
             : "par prognoza–obserwacja"}
-          <span> · zaktualizowano {relativeTime(globalStats.updatedAt)}</span>
+          <span>· zaktualizowano {relativeTime(globalStats.updatedAt)}</span>
         </p>
       )}
     </header>

@@ -7,7 +7,9 @@ export const handler = define.handlers({
     const withForecast = locations.filter((l) => l.hasForecast).length;
     const freshest = locations
       .filter((l) => l.generatedAt)
-      .sort((a, b) => (b.generatedAt ?? "").localeCompare(a.generatedAt ?? ""))[0];
+      .sort((a, b) =>
+        (b.generatedAt ?? "").localeCompare(a.generatedAt ?? "")
+      )[0];
 
     return json({
       ok: true,

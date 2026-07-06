@@ -504,3 +504,31 @@ export async function countVerifiedPairs(): Promise<number> {
   }
   return count;
 }
+
+/** Usuwa całą historię weryfikacji (pending, done, statystyki). */
+export async function clearAllVerificationData(): Promise<{
+  pending: number;
+  verified: number;
+  stats: number;
+}> {
+  const kv = await getKv();
+  let pending = 0;
+  let verified = 0;
+  let stats = 0;
+
+  for await (const entry of kv.list({ prefix: [VERIFY_PENDING_KEY] })) {
+    await kv.delete(entry.key);
+    pending++;
+  }
+  for await (const entry of kv.list({ prefix: [VERIFY_DONE_KEY] })) {
+    await kv.delete(entry.key);
+    verified++;
+  }
+  for await (const entry of kv.list({ prefix: [ACCURACY_STATS_KEY] })) {
+    await kv.delete(entry.key);
+    stats++;
+  }
+
+  await setAccuracyStats(GLOBAL_ACCURACY_ID, emptyAccuracyStats());
+  return { pending, verified, stats };
+}

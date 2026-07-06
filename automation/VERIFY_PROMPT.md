@@ -14,7 +14,7 @@ zarchiwizowanych prognoz z obserwacjami Open-Meteo.
 1. Wywołaj endpoint weryfikacji:
 
 ```bash
-curl -X POST https://pogodai.deno.dev/api/verification/run
+curl -X POST https://pogodai.keewinek.deno.net/api/verification/run
 ```
 
 (lub odpowiedni URL produkcyjny / lokalny
@@ -32,14 +32,16 @@ curl -X POST https://pogodai.deno.dev/api/verification/run
 4. Opcjonalnie sprawdź health:
 
 ```bash
-curl https://pogodai.deno.dev/api/health
+curl https://pogodai.keewinek.deno.net/api/health
 ```
 
 ## Uwagi
 
-- Weryfikacja wymaga, żeby wcześniej automation prognozy
-  (`automation/PROMPT.md`) wysłała POST `/api/forecast` — wtedy zapisują się
-  pending samples.
+- Weryfikacja wymaga, żeby wcześniej orkiestrator prognoz
+  (`automation/PROMPT.md`) uruchomił subagentów — każdy wysyła
+  `POST /api/forecast`, wtedy zapisują się pending samples.
+- Orkiestrator po rundzie sprawdza `GET /api/forecast/status` (świeżość per
+  lokalizacja).
 - Pierwsze wyniki pojawiają się ~7+ godzin po pierwszej prognozie (min. lead 6h
   - 1h na obserwację).
 - Nie modyfikuj danych w KV ręcznie.

@@ -109,7 +109,8 @@ function validateDay(v: unknown, path: string): Result<DayForecast> {
     if (!h.value.time.startsWith(v.date)) {
       return {
         ok: false,
-        error: `${path}.hours[${i}].time: data godziny musi zgadzać się z day.date`,
+        error:
+          `${path}.hours[${i}].time: data godziny musi zgadzać się z day.date`,
       };
     }
     hours.push(h.value);

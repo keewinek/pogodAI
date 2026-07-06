@@ -444,7 +444,8 @@ export function LocationEditor(
                 <li key={`${place.name}-${place.lat}-${place.lon}`}>
                   <button
                     type="button"
-                    onClick={() => pick(place)}
+                    onClick={() =>
+                      pick(place)}
                     class="search-result-row"
                   >
                     {place.name}

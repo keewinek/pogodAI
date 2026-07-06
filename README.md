@@ -7,22 +7,25 @@ czyta prognozę z Deno KV.
 Prod: **https://pogodai.keewinek.deno.net/**
 
 ```
-Cursor Automation (cron) → POST /api/forecast → Deno KV → Fresh
+Cursor Automation (orkiestrator, cron)
+  → subagent × lokalizacja → POST /api/forecast → Deno KV → Fresh
 ```
 
-- Prompt: `automation/PROMPT.md`
+- Orkiestrator: `automation/PROMPT.md` (cron `0 * * * *`)
+- Subagent: `automation/LOCATION_PROMPT.md` (jedna lokalizacja)
 - Kontekst: `Context/README.md`
 
 ## API
 
-| Metoda | Ścieżka                     | Opis                           |
-| ------ | --------------------------- | ------------------------------ |
-| GET    | `/api/locations`            | Lista lokalizacji              |
-| POST   | `/api/locations`            | Dodaj lokalizację              |
-| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę)  |
-| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji       |
-| POST   | `/api/forecast`             | Zapis prognozy (automatyzacja) |
-| GET    | `/api/health`               | Status systemu                 |
+| Metoda | Ścieżka                     | Opis                          |
+| ------ | --------------------------- | ----------------------------- |
+| GET    | `/api/locations`            | Lista lokalizacji             |
+| POST   | `/api/locations`            | Dodaj lokalizację             |
+| DELETE | `/api/locations/:id`        | Usuń lokalizację (+ prognozę) |
+| GET    | `/api/forecast/:locationId` | Prognoza dla lokalizacji      |
+| GET    | `/api/forecast/status`      | Status prognoz (orkiestrator) |
+| POST   | `/api/forecast`             | Zapis prognozy (subagent)     |
+| GET    | `/api/health`               | Status systemu                |
 
 ## Development
 
@@ -38,5 +41,6 @@ deno task start    # serwuj build (port 8000)
 Push na `main` → Deno Deploy. W panelu: Databases → Deno KV → Assign do
 `pogodai`.
 
-Prognozy wyłącznie z Cursor Automation (`automation/PROMPT.md`, cron
-`0 * * * *`).
+Prognozy wyłącznie z Cursor Automation — orkiestrator (`automation/PROMPT.md`,
+cron `0 * * * *`) uruchamia subagenta na każdą lokalizację wg
+`automation/LOCATION_PROMPT.md`.
