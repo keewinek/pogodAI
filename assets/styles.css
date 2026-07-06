@@ -416,6 +416,66 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.radar-panel {
+  padding: 10px;
+}
+
+.radar-status {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.radar-map-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-inset);
+  border: 1px solid var(--border-subtle);
+}
+
+.radar-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.radar-slider {
+  width: 100%;
+  margin-top: 10px;
+  accent-color: var(--accent-rain);
+}
+
+.radar-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.radar-btn {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.radar-time {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.radar-credit {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.radar-credit a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
 .wordmark {
   display: inline-flex;
   align-items: center;

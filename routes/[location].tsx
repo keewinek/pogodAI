@@ -15,6 +15,7 @@ import {
   HourlyStrip,
   VerdictCard,
 } from "../components/forecast.tsx";
+import { RainRadar } from "../islands/RainRadar.tsx";
 import { DailyAccordion, LocationPicker } from "../islands/ui.tsx";
 
 export const handler = define.handlers({
@@ -77,6 +78,10 @@ export default define.page<typeof handler>(function LocationPage({ data }) {
                 todayDate={today}
                 labels={forecast.days.map((d) => dayDateLabel(d.date))}
               />
+            </section>
+            <section>
+              <h2 class="section-label">Radar opadów</h2>
+              <RainRadar lat={location.lat} lon={location.lon} />
             </section>
             <FreshnessFooter
               generatedAt={forecast.generatedAt}
