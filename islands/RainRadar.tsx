@@ -4,6 +4,7 @@ import {
   loadRainFrames,
   omFrameUrl,
   radarFrameUrl,
+  radarImageCoordinates,
   type RainFrame,
 } from "../lib/rain-radar.ts";
 
@@ -13,6 +14,7 @@ const MAPLIBRE_CSS =
 const MAPLIBRE_JS = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
 const OM_LAYER_JS =
   "https://unpkg.com/@openmeteo/weather-map-layer@0.0.19/dist/index.js";
+const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 function loadStyle(href: string): Promise<void> {
   if (document.querySelector(`link[href="${href}"]`)) return Promise.resolve();
@@ -27,28 +29,59 @@ function loadStyle(href: string): Promise<void> {
 }
 
 function loadScript(src: string): Promise<void> {
-  if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve();
+  const existing = document.querySelector(`script[src="${src}"]`);
+  if (existing) {
+    return existing.getAttribute("data-loaded") === "true"
+      ? Promise.resolve()
+      : new Promise((resolve, reject) => {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(), { once: true });
+      });
+  }
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = src;
-    script.onload = () => resolve();
+    script.onload = () => {
+      script.setAttribute("data-loaded", "true");
+      resolve();
+    };
     script.onerror = () => reject();
     document.head.appendChild(script);
   });
 }
 
-type MapInstance = {
-  Map: new (options: Record<string, unknown>) => MapInstance;
+// MapLibre z CDN — luźne typy.
+type MapApi = {
+  Map: new (options: Record<string, unknown>) => MapApi;
   addProtocol: (name: string, handler: (...args: unknown[]) => unknown) => void;
   on: (event: string, handler: () => void) => void;
   addSource: (id: string, source: Record<string, unknown>) => void;
   addLayer: (layer: Record<string, unknown>) => void;
-  getSource: (id: string) => unknown;
+  getSource: (id: string) => { updateImage?: (v: Record<string, unknown>) => void } | null;
+  getLayer: (id: string) => unknown;
   removeLayer: (id: string) => void;
   removeSource: (id: string) => void;
   isStyleLoaded: () => boolean;
+  resize: () => void;
   remove: () => void;
 };
+
+async function ensureMapLibs(): Promise<{
+  maplibregl: MapApi;
+  omProtocol: (...args: unknown[]) => unknown;
+}> {
+  await loadStyle(MAPLIBRE_CSS);
+  await loadScript(MAPLIBRE_JS);
+  await loadScript(OM_LAYER_JS);
+  const maplibregl = (window as unknown as { maplibregl: MapApi }).maplibregl;
+  const omLayer = (window as unknown as {
+    OMWeatherMapLayer: { omProtocol: (...args: unknown[]) => unknown };
+  }).OMWeatherMapLayer;
+  if (!maplibregl?.Map || !omLayer?.omProtocol) {
+    throw new Error("map libs");
+  }
+  return { maplibregl, omProtocol: omLayer.omProtocol };
+}
 
 export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   const [host, setHost] = useState("");
@@ -60,9 +93,9 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   const [mapReady, setMapReady] = useState(false);
   const timerRef = useRef<number>();
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<MapInstance | null>(null);
-  const lastForecastStep = useRef<string | null>(null);
+  const mapInstance = useRef<MapApi | null>(null);
   const radarCountRef = useRef(0);
+  const libsReady = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,35 +136,37 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
   }, [playing, frames.length]);
 
   useEffect(() => {
-    const firstForecast = frames.find((f) => f.kind === "forecast");
-    if (!firstForecast || !mapRef.current || mapInstance.current) return;
+    if (!frames.length || !mapRef.current || mapInstance.current) return;
 
     let cancelled = false;
 
     (async () => {
       try {
-        await loadStyle(MAPLIBRE_CSS);
-        await loadScript(MAPLIBRE_JS);
-        await loadScript(OM_LAYER_JS);
+        const { maplibregl, omProtocol } = await ensureMapLibs();
         if (cancelled || !mapRef.current) return;
 
-        const maplibregl = (window as unknown as { maplibregl: MapInstance })
-          .maplibregl;
-        const omLayer = (window as unknown as {
-          OMWeatherMapLayer: { omProtocol: (...args: unknown[]) => unknown };
-        }).OMWeatherMapLayer;
+        if (!libsReady.current) {
+          maplibregl.addProtocol("om", omProtocol);
+          libsReady.current = true;
+        }
 
-        maplibregl.addProtocol("om", omLayer.omProtocol);
-        mapInstance.current = new maplibregl.Map({
+        const map = new maplibregl.Map({
           container: mapRef.current,
           style: {
             version: 8,
-            sources: {},
+            sources: {
+              osm: {
+                type: "raster",
+                tiles: [OSM_TILES],
+                tileSize: 256,
+                attribution: "© OpenStreetMap",
+              },
+            },
             layers: [
               {
-                id: "background",
-                type: "background",
-                paint: { "background-color": "rgba(0,0,0,0)" },
+                id: "osm",
+                type: "raster",
+                source: "osm",
               },
             ],
           },
@@ -142,24 +177,14 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
           fadeDuration: 0,
         });
 
-        mapInstance.current.on("load", () => {
-          if (!mapInstance.current) return;
-          mapInstance.current.addSource("precip", {
-            type: "raster",
-            url: `om://${omFrameUrl(firstForecast.timeStep)}`,
-            tileSize: 256,
-          });
-          mapInstance.current.addLayer({
-            id: "precip",
-            type: "raster",
-            source: "precip",
-            paint: { "raster-opacity": 0.85 },
-          });
+        mapInstance.current = map;
+        map.on("load", () => {
+          if (cancelled) return;
           setMapReady(true);
-          lastForecastStep.current = firstForecast.timeStep;
+          map.resize();
         });
       } catch {
-        if (!cancelled) setError("Nie udało się załadować prognozy opadów.");
+        if (!cancelled) setError("Nie udało się załadować mapy radaru.");
       }
     })();
 
@@ -170,36 +195,71 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
 
   useEffect(() => {
     const frame = frames[idx];
-    if (
-      !frame ||
-      frame.kind !== "forecast" ||
-      !mapInstance.current?.isStyleLoaded() ||
-      lastForecastStep.current === frame.timeStep
-    ) {
-      return;
-    }
+    const map = mapInstance.current;
+    if (!frame || !map || !mapReady) return;
 
-    if (mapInstance.current.getSource("precip")) {
-      mapInstance.current.removeLayer("precip");
-      mapInstance.current.removeSource("precip");
+    const showRadar = (url: string) => {
+      const coords = radarImageCoordinates(lat, lon);
+      if (map.getSource("precip")) {
+        map.removeLayer("precip");
+        map.removeSource("precip");
+      }
+      const source = map.getSource("radar");
+      if (source?.updateImage) {
+        source.updateImage({ url, coordinates: coords });
+        if (!map.getLayer("radar")) {
+          map.addLayer({
+            id: "radar",
+            type: "raster",
+            source: "radar",
+            paint: { "raster-opacity": 0.82 },
+          });
+        }
+        return;
+      }
+      if (map.getLayer("radar")) map.removeLayer("radar");
+      if (map.getSource("radar")) map.removeSource("radar");
+      map.addSource("radar", { type: "image", url, coordinates: coords });
+      map.addLayer({
+        id: "radar",
+        type: "raster",
+        source: "radar",
+        paint: { "raster-opacity": 0.82 },
+      });
+    };
+
+    const showForecast = (timeStep: string) => {
+      if (map.getLayer("radar")) map.removeLayer("radar");
+      if (map.getSource("radar")) map.removeSource("radar");
+      if (map.getSource("precip")) {
+        map.removeLayer("precip");
+        map.removeSource("precip");
+      }
+      map.addSource("precip", {
+        type: "raster",
+        url: `om://${omFrameUrl(timeStep)}`,
+        tileSize: 256,
+      });
+      map.addLayer({
+        id: "precip",
+        type: "raster",
+        source: "precip",
+        paint: { "raster-opacity": 0.82 },
+      });
+    };
+
+    if (frame.kind === "radar") {
+      showRadar(radarFrameUrl(host, frame.path, lat, lon));
+    } else {
+      showForecast(frame.timeStep);
     }
-    mapInstance.current.addSource("precip", {
-      type: "raster",
-      url: `om://${omFrameUrl(frame.timeStep)}`,
-      tileSize: 256,
-    });
-    mapInstance.current.addLayer({
-      id: "precip",
-      type: "raster",
-      source: "precip",
-      paint: { "raster-opacity": 0.85 },
-    });
-    lastForecastStep.current = frame.timeStep;
-  }, [idx, frames]);
+    map.resize();
+  }, [idx, frames, host, lat, lon, mapReady]);
 
   useEffect(() => () => {
     mapInstance.current?.remove();
     mapInstance.current = null;
+    libsReady.current = false;
   }, []);
 
   if (loading) {
@@ -220,33 +280,15 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
 
   const frame = frames[idx];
   const radarCount = radarCountRef.current;
-  const isRadar = frame.kind === "radar";
-  const isNow = isRadar && idx === radarCount - 1;
+  const isNow = frame.kind === "radar" && idx === radarCount - 1;
   const isForecast = frame.kind === "forecast";
-  const radarSrc = isRadar
-    ? radarFrameUrl(host, frame.path, lat, lon)
-    : "";
 
   return (
     <div class="radar-panel">
       <div class="radar-map-wrap">
-        {isRadar && (
-          <img
-            src={radarSrc}
-            alt="Radar opadów w okolicy lokalizacji"
-            class="radar-map"
-            width={512}
-            height={512}
-            loading="lazy"
-          />
-        )}
-        <div
-          ref={mapRef}
-          class={`radar-map-maplibre ${isForecast ? "radar-map-visible" : ""}`}
-          aria-hidden={!isForecast}
-        />
-        {isForecast && !mapReady && (
-          <p class="radar-status radar-status-overlay muted">Ładowanie prognozy…</p>
+        <div ref={mapRef} class="radar-map-maplibre" />
+        {!mapReady && (
+          <p class="radar-status radar-status-overlay muted">Ładowanie mapy…</p>
         )}
       </div>
       <input
@@ -295,6 +337,14 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
             </a>
           </>
         )}
+        {" · "}
+        <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          OpenStreetMap
+        </a>
       </p>
     </div>
   );

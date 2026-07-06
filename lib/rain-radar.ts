@@ -26,6 +26,26 @@ interface OmManifest {
   valid_times: string[];
 }
 
+export function radarImageCoordinates(
+  lat: number,
+  lon: number,
+  zoom = 7,
+  sizePx = 512,
+): [number, number][] {
+  const half = sizePx / 2;
+  const scale = 156543.03392 * Math.cos((lat * Math.PI) / 180) /
+    Math.pow(2, zoom);
+  const dLon = ((half * scale) /
+    (6378137 * Math.cos((lat * Math.PI) / 180))) * (180 / Math.PI);
+  const dLat = ((half * scale) / 6378137) * (180 / Math.PI);
+  return [
+    [lon - dLon, lat + dLat],
+    [lon + dLon, lat + dLat],
+    [lon + dLon, lat - dLat],
+    [lon - dLon, lat - dLat],
+  ];
+}
+
 export function radarFrameUrl(
   host: string,
   path: string,
