@@ -43,6 +43,7 @@ body {
   justify-content: center;
   height: 3rem;
   padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(0, 0, 0, 0.42);
 }
 
 .app-header-title {
@@ -105,7 +106,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.42);
+  border-radius: 9999px;
   padding: 10px 18px;
   font-size: 15px;
   font-weight: 500;
@@ -115,7 +117,7 @@ body {
 
 .location-picker-menu {
   border-radius: 14px;
-  background: #000;
+  background: rgba(0, 0, 0, 0.88);
   overflow: hidden;
 }
 
@@ -128,7 +130,7 @@ body {
 }
 
 .location-picker-row:hover {
-  opacity: 0.75;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-primary {
