@@ -216,11 +216,6 @@ body {
   color: var(--text-primary);
 }
 
-.hero-emoji {
-  font-size: 4rem;
-  line-height: 1;
-}
-
 .hero-condition {
   font-size: 15px;
   font-weight: 500;

@@ -27,10 +27,7 @@ export function Hero(
       <p class={`hero-condition ${labelClass}`}>
         {label}
       </p>
-      <div class="hero-emoji mt-3 mb-1 select-none" aria-hidden="true">
-        {emoji}
-      </div>
-      <div class="temp-hero">{Math.round(verdict.temperature)}°</div>
+      <div class="temp-hero mt-2">{Math.round(verdict.temperature)}°</div>
       <div class="stat-chip w-full max-w-[18rem]">
         <div class="stat-chip-item">
           <span class="stat-chip-value">{Math.round(verdict.feelsLike)}°</span>
