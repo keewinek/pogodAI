@@ -1,4 +1,5 @@
-export const RAINVIEWER_API = "https://api.rainviewer.com/public/weather-maps.json";
+export const RAINVIEWER_API =
+  "https://api.rainviewer.com/public/weather-maps.json";
 export const OM_META_URL =
   "https://map-tiles.open-meteo.com/data_spatial/dwd_icon/latest.json?variable=precipitation";
 export const FORECAST_HOURS = 12;
@@ -19,7 +20,10 @@ export type RainFrame = RadarTileFrame | ForecastTileFrame;
 
 interface RainViewerManifest {
   host: string;
-  radar: { past: { time: number; path: string }[]; nowcast?: { time: number; path: string }[] };
+  radar: {
+    past: { time: number; path: string }[];
+    nowcast?: { time: number; path: string }[];
+  };
 }
 
 interface OmManifest {

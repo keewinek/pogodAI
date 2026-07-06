@@ -117,8 +117,8 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 - `days`: **14 dni**, `[0]` = dziś — **tylko liczby i godzinówka**, bez tekstów
   werdyktowych.
 - `hours`: **dni 1–3** (dziś, jutro, pojutrze — indeksy `[0]`–`[2]`) co 1 h
-  (**24 wpisy** na dzień); **dni 4–14** (indeksy `[3]`–`[13]`) co 3 h
-  (**8 wpisów** na dzień).
+  (**24 wpisy** na dzień); **dni 4–14** (indeksy `[3]`–`[13]`) co 3 h (**8
+  wpisów** na dzień).
 - Pola dzienne `tempMin`, `tempMax`, `precipitationChance`, `windKmh` bierz z
   Open-Meteo **daily** (nie zeruj — muszą być spójne z godzinówką).
 - **Nie** dodawaj `summary` ani `emoji` na poziomie dnia — ikona dnia liczy się

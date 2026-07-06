@@ -379,7 +379,9 @@ export function LocationEditor(
             </div>
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-2">
-                <span class="text-[12px] font-medium muted">Szerokość (lat)</span>
+                <span class="text-[12px] font-medium muted">
+                  Szerokość (lat)
+                </span>
                 <input
                   type="text"
                   inputMode="decimal"

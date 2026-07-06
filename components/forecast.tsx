@@ -50,7 +50,7 @@ export function VerdictCard({ verdict }: { verdict: Verdict }) {
         {verdict.text}
       </p>
       <p class="precip-badge mt-3">
-          {Math.round(verdict.precipitationChance)}% szansa opadów
+        {Math.round(verdict.precipitationChance)}% szansa opadów
       </p>
     </section>
   );

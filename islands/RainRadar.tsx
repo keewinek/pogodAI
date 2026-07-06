@@ -9,8 +9,7 @@ import {
 } from "../lib/rain-radar.ts";
 
 const FRAME_DELAY_MS = 450;
-const MAPLIBRE_CSS =
-  "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
+const MAPLIBRE_CSS = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css";
 const MAPLIBRE_JS = "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js";
 const OM_LAYER_JS =
   "https://unpkg.com/@openmeteo/weather-map-layer@0.0.19/dist/index.js";
@@ -57,7 +56,9 @@ type MapApi = {
   on: (event: string, handler: () => void) => void;
   addSource: (id: string, source: Record<string, unknown>) => void;
   addLayer: (layer: Record<string, unknown>) => void;
-  getSource: (id: string) => { updateImage?: (v: Record<string, unknown>) => void } | null;
+  getSource: (
+    id: string,
+  ) => { updateImage?: (v: Record<string, unknown>) => void } | null;
   getLayer: (id: string) => unknown;
   removeLayer: (id: string) => void;
   removeSource: (id: string) => void;
@@ -104,7 +105,9 @@ export function RainRadar({ lat, lon }: { lat: number; lon: number }) {
     Promise.all([framesPromise, libsPromise])
       .then(([data]) => {
         if (cancelled) return;
-        radarCountRef.current = data.frames.findIndex((f) => f.kind === "forecast");
+        radarCountRef.current = data.frames.findIndex((f) =>
+          f.kind === "forecast"
+        );
         if (radarCountRef.current === -1) {
           radarCountRef.current = data.frames.length;
         }

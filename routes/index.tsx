@@ -21,7 +21,10 @@ export default define.page<typeof handler>(function Home({ data }) {
       </header>
       <LocationGate locations={data.locations} />
       <p class="text-center pt-2">
-        <a href="/lokalizacje" class="btn-secondary inline-flex items-center gap-2">
+        <a
+          href="/lokalizacje"
+          class="btn-secondary inline-flex items-center gap-2"
+        >
           Edytuj lokalizacje
           <span class="chevron" aria-hidden="true" />
         </a>
