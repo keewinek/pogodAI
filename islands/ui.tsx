@@ -1,22 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { DayForecast, Location } from "../lib/db.ts";
 import { dayEmoji, dayPrecip, dayTemps, dayWind } from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
-
-function tempBarStyle(
-  tempMin: number,
-  tempMax: number,
-  globalMin: number,
-  globalMax: number,
-): { left: string; width: string } {
-  const span = globalMax - globalMin || 1;
-  return {
-    left: `${((tempMin - globalMin) / span) * 100}%`,
-    width: `${Math.max(((tempMax - tempMin) / span) * 100, 8)}%`,
-  };
-}
 
 export function LocationPicker(
   { locations, currentId }: { locations: Location[]; currentId: string },
@@ -162,13 +149,6 @@ export function DailyAccordion(
   }: { days: DayForecast[]; labels: string[]; todayDate: string },
 ) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const { globalMin, globalMax } = useMemo(() => {
-    const ranges = days.map((d) => dayTemps(d));
-    return {
-      globalMin: Math.min(...ranges.map((r) => r.min)),
-      globalMax: Math.max(...ranges.map((r) => r.max)),
-    };
-  }, [days]);
 
   return (
     <div class="grouped daily-list">
@@ -178,7 +158,6 @@ export function DailyAccordion(
         const { min: tempMin, max: tempMax } = dayTemps(day);
         const precip = dayPrecip(day);
         const wind = dayWind(day);
-        const bar = tempBarStyle(tempMin, tempMax, globalMin, globalMax);
         const rowEmoji = dayEmoji(day);
         return (
           <div key={day.date}>
@@ -191,14 +170,6 @@ export function DailyAccordion(
               <span class="daily-date">{labels[i]}</span>
               <span class="daily-emoji" aria-hidden="true">{rowEmoji}</span>
               <span class="daily-temp-low">{Math.round(tempMin)}°</span>
-              <div class="daily-bar">
-                <div class="temp-range-track">
-                  <div
-                    class="temp-range-fill"
-                    style={{ left: bar.left, width: bar.width }}
-                  />
-                </div>
-              </div>
               <span class="daily-temp-high">{Math.round(tempMax)}°</span>
               <span
                 class={`daily-precip ${precip > 0 ? "daily-precip-wet" : ""}`}

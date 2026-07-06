@@ -304,8 +304,7 @@ body {
 
 .daily-row {
   display: grid;
-  grid-template-columns:
-    5.75rem 1.625rem 1.75rem minmax(2rem, 1fr) 1.75rem 2.125rem 0.75rem;
+  grid-template-columns: 5.75rem 1.625rem 1.75rem 1.75rem 1fr 2.125rem 0.75rem;
   align-items: center;
   column-gap: 8px;
   padding: 10px 10px;
@@ -374,11 +373,6 @@ body {
   font-weight: 500;
 }
 
-.daily-bar {
-  min-width: 0;
-  padding: 0 1px;
-}
-
 .daily-detail {
   margin: 0 4px 4px;
   padding: 10px 6px 8px;
@@ -392,22 +386,6 @@ body {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   font-variant-numeric: tabular-nums;
-}
-
-.temp-range-track {
-  position: relative;
-  height: 5px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.12);
-  overflow: hidden;
-}
-
-.temp-range-fill {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.65);
 }
 
 .wordmark {
