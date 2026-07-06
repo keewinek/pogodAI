@@ -46,7 +46,7 @@ export function LocationPicker(
         aria-label="Zmień lokalizację"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        class="btn-pill"
+        class="location-picker-btn"
       >
         <span>{current?.name ?? currentId}</span>
         <span
@@ -57,13 +57,13 @@ export function LocationPicker(
         />
       </button>
       {open && (
-        <div class="absolute top-full mt-2 z-20 w-72 max-w-[90vw] grouped py-1">
+        <div class="location-picker-menu absolute top-full mt-2 z-20 w-72 max-w-[90vw] py-1">
           {locations.map((l) => (
             <button
               key={l.id}
               type="button"
               onClick={() => choose(l.id)}
-              class={`grouped-row grouped-row-interactive w-full text-left text-[17px] ${
+              class={`location-picker-row w-full text-left text-[17px] ${
                 l.id === currentId
                   ? "font-semibold text-primary"
                   : "text-primary"
@@ -79,7 +79,7 @@ export function LocationPicker(
           ))}
           <a
             href="/lokalizacje"
-            class="grouped-row grouped-row-interactive w-full text-[15px] muted"
+            class="location-picker-row w-full text-[15px] muted"
           >
             Edytuj lokalizacje
             <span class="chevron ml-auto" aria-hidden="true" />
