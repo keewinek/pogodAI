@@ -127,8 +127,10 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
   WMO: 0→☀️, 1→🌤️, 2–3→⛅, 45–48→🌫️, 51–67→🌧️, 71–77→🌨️, 85–86→❄️, 95–99→⛈️,
   inaczej ☁️.
 - `time` w strefie Europe/Warsaw.
-- Emoji tylko: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨 🌪️ (🌪️ też pojawia się w UI przy
-  wietrze ≥ 60 km/h)
+- Emoji w `hours[]` z `weather_code` (WMO). Aplikacja wybiera ikonę wg
+  hierarchii: **burza → deszcz → wiatr (≥ 60 km/h) → pochmurno → słońce** (w
+  nocy słońce → księżyc).
+- Emoji tylko: ☀️ 🌤️ ⛅ ☁️ 🌧️ ⛈️ 🌨️ ❄️ 🌫️ 💨 🌪️
 - Liczby całkowite: °C, km/h, %.
 - Nie cytuj całych stron — wyciągaj liczby i wnioski.
 

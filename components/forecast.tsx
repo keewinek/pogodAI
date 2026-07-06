@@ -10,7 +10,12 @@ import {
 export function Hero(
   { verdict, hour }: { verdict: Verdict; hour: number },
 ) {
-  const emoji = displayEmoji(verdict.emoji, hour, verdict.windKmh);
+  const emoji = displayEmoji(
+    verdict.emoji,
+    hour,
+    verdict.windKmh,
+    verdict.precipitationChance,
+  );
   const label = conditionLabel(emoji);
   const labelClass = label === "Słonecznie"
     ? "text-amber-100/90"
@@ -76,7 +81,12 @@ export function HourlyStrip(
         {hours.map((h, i) => {
           const isNow = !embedded && i === 0;
           const hour = parseInt(h.time.slice(11, 13), 10);
-          const emoji = displayEmoji(h.emoji, hour, h.windKmh);
+          const emoji = displayEmoji(
+            h.emoji,
+            hour,
+            h.windKmh,
+            h.precipitationChance,
+          );
           return (
             <div
               key={h.time}

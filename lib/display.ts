@@ -54,33 +54,83 @@ export function isNightHour(hour: number): boolean {
   return hour >= 22 || hour < 6;
 }
 
-function isPrecipEmoji(emoji: string): boolean {
-  return emoji.includes("🌧") || emoji.includes("⛈") ||
-    emoji.includes("🌩") || emoji.includes("🌨") || emoji.includes("❄") ||
-    emoji.includes("☔") || emoji.includes("🌦");
+export const HIGH_WIND_KMH = 60;
+const RAIN_PRECIP_MIN = 30;
+
+const TIER = {
+  STORM: 5,
+  RAIN: 4,
+  WIND: 3,
+  CLOUDY: 2,
+  CLEAR: 1,
+} as const;
+
+function isStormEmoji(emoji: string): boolean {
+  return emoji.includes("⛈") || emoji.includes("🌩");
+}
+
+function isRainEmoji(emoji: string): boolean {
+  return emoji.includes("🌧") || emoji.includes("☔") ||
+    emoji.includes("🌦") || emoji.includes("🌨") || emoji.includes("❄");
 }
 
 function isSunEmoji(emoji: string): boolean {
   return emoji.includes("☀") || emoji.includes("🌤");
 }
 
-export const HIGH_WIND_KMH = 60;
-
-function isStormEmoji(emoji: string): boolean {
-  return emoji.includes("⛈") || emoji.includes("🌩");
+function isCloudyEmoji(emoji: string): boolean {
+  return emoji.includes("⛅") || emoji.includes("☁") || emoji.includes("🌫");
 }
 
-/** Emoji do wyświetlenia — silny wiatr, noc (księżyc), opady bez zmian. */
+/** Hierarchia: burza → deszcz → wiatr → pochmurno → słońce. */
+export function conditionTier(
+  emoji: string,
+  windKmh: number,
+  precipChance: number,
+): number {
+  if (isStormEmoji(emoji)) return TIER.STORM;
+  if (isRainEmoji(emoji) || precipChance >= RAIN_PRECIP_MIN) return TIER.RAIN;
+  if (windKmh >= HIGH_WIND_KMH) return TIER.WIND;
+  if (isCloudyEmoji(emoji)) return TIER.CLOUDY;
+  if (isSunEmoji(emoji)) return TIER.CLEAR;
+  return TIER.CLOUDY;
+}
+
+function emojiForTier(
+  tier: number,
+  sourceEmoji: string,
+  hour: number,
+): string {
+  switch (tier) {
+    case TIER.STORM:
+      return "⛈️";
+    case TIER.RAIN:
+      if (sourceEmoji.includes("🌨") || sourceEmoji.includes("❄")) {
+        return "🌨️";
+      }
+      return "🌧️";
+    case TIER.WIND:
+      return "🌪️";
+    case TIER.CLOUDY:
+      if (sourceEmoji.includes("🌫")) return "🌫️";
+      if (sourceEmoji.includes("☁")) return "☁️";
+      return "⛅";
+    default:
+      if (isNightHour(hour) && isSunEmoji(sourceEmoji)) return "🌙";
+      if (sourceEmoji.includes("🌤")) return "🌤️";
+      return "☀️";
+  }
+}
+
+/** Ikona pogody wg hierarchii warunków. */
 export function displayEmoji(
   emoji: string,
   hour: number,
   windKmh = 0,
+  precipChance = 0,
 ): string {
-  if (windKmh >= HIGH_WIND_KMH && !isStormEmoji(emoji)) return "🌪️";
-  if (!isNightHour(hour)) return emoji;
-  if (isPrecipEmoji(emoji)) return emoji;
-  if (isSunEmoji(emoji)) return "🌙";
-  return emoji;
+  const tier = conditionTier(emoji, windKmh, precipChance);
+  return emojiForTier(tier, emoji, hour);
 }
 
 export function themeFor(emoji: string | undefined, hour: number): Theme {
@@ -230,39 +280,30 @@ export function hourFromTime(time: string): number {
   return parseInt(time.slice(11, 13), 10);
 }
 
-function emojiSeverity(emoji: string): number {
-  if (emoji.includes("⛈") || emoji.includes("🌩")) return 9;
-  if (emoji.includes("🌪")) return 8;
-  if (emoji.includes("❄") || emoji.includes("🌨")) return 8;
-  if (emoji.includes("🌧") || emoji.includes("☔")) return 7;
-  if (emoji.includes("🌦")) return 6;
-  if (emoji.includes("🌫")) return 5;
-  if (emoji.includes("☁")) return 4;
-  if (emoji.includes("⛅")) return 3;
-  if (emoji.includes("🌤")) return 2;
-  if (emoji.includes("☀")) return 1;
-  return 0;
-}
-
-/** Ikona dnia z godzinówki — południe lub najgorsza pogoda przy wysokich opadach. */
+/** Ikona dnia — najwyższy poziom hierarchii z całej doby. */
 export function dayEmoji(day: DayForecast): string {
   if (day.hours.length === 0) return "⛅";
 
-  const precip = dayPrecip(day);
-  if (precip >= 40) {
-    const worst = day.hours.reduce((a, h) =>
-      emojiSeverity(h.emoji) > emojiSeverity(a.emoji) ? h : a
+  let pick = day.hours[0];
+  let bestTier = -1;
+  for (const h of day.hours) {
+    const tier = conditionTier(
+      h.emoji,
+      h.windKmh,
+      h.precipitationChance,
     );
-    return displayEmoji(worst.emoji, hourFromTime(worst.time), worst.windKmh);
+    if (tier > bestTier) {
+      bestTier = tier;
+      pick = h;
+    }
   }
 
-  const daytime = day.hours.filter((h) => {
-    const hr = hourFromTime(h.time);
-    return hr >= 10 && hr <= 15;
-  });
-  const pool = daytime.length > 0 ? daytime : day.hours;
-  const base = pool[Math.floor(pool.length / 2)].emoji;
-  return displayEmoji(base, 12, dayWind(day));
+  return displayEmoji(
+    pick.emoji,
+    12,
+    pick.windKmh,
+    pick.precipitationChance,
+  );
 }
 
 export function hourLabel(time: string): string {
