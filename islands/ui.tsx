@@ -171,17 +171,19 @@ export function DailyAccordion(
               <span class="daily-emoji" aria-hidden="true">{rowEmoji}</span>
               <span class="daily-temp-low">{Math.round(tempMin)}°</span>
               <span class="daily-temp-high">{Math.round(tempMax)}°</span>
-              <span
-                class={`daily-precip ${precip > 0 ? "daily-precip-wet" : ""}`}
-              >
-                {precip > 0 ? `${Math.round(precip)}%` : "—"}
+              <span class="daily-row-end">
+                <span
+                  class={`daily-precip ${precip > 0 ? "daily-precip-wet" : ""}`}
+                >
+                  {precip > 0 ? `${Math.round(precip)}%` : "—"}
+                </span>
+                <span
+                  class={`chevron transition-transform duration-200 ${
+                    open ? "rotate-[135deg]" : "chevron-down"
+                  }`}
+                  aria-hidden="true"
+                />
               </span>
-              <span
-                class={`chevron transition-transform duration-200 ${
-                  open ? "rotate-[135deg]" : "chevron-down"
-                }`}
-                aria-hidden="true"
-              />
             </button>
             {open && (
               <div class="daily-detail">
@@ -352,11 +354,7 @@ export function LocationEditor(
           {busy ? "Dodawanie…" : "Dodaj lokalizację"}
         </button>
         {message && (
-          <p
-            class={`text-[15px] ${
-              message.kind === "ok" ? "text-success" : "text-danger"
-            }`}
-          >
+          <p class="text-[15px] muted-strong">
             {message.text}
           </p>
         )}
