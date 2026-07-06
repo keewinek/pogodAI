@@ -112,11 +112,12 @@ function emojiForTier(
     case TIER.WIND:
       return "🌪️";
     case TIER.CLOUDY:
+      if (isNightHour(hour)) return "🌙";
       if (sourceEmoji.includes("🌫")) return "🌫️";
       if (sourceEmoji.includes("☁")) return "☁️";
       return "⛅";
     default:
-      if (isNightHour(hour) && isSunEmoji(sourceEmoji)) return "🌙";
+      if (isNightHour(hour)) return "🌙";
       if (sourceEmoji.includes("🌤")) return "🌤️";
       return "☀️";
   }
