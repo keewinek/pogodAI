@@ -71,20 +71,6 @@ function validateDay(v: unknown, path: string): Result<DayForecast> {
   if (typeof v.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v.date)) {
     return { ok: false, error: `${path}.date: wymagany format YYYY-MM-DD` };
   }
-  if (
-    typeof v.summary !== "string" || v.summary.length === 0 ||
-    v.summary.length > 300
-  ) {
-    return {
-      ok: false,
-      error: `${path}.summary: niepusty tekst do 300 znaków`,
-    };
-  }
-  if (
-    typeof v.emoji !== "string" || v.emoji.length === 0 || v.emoji.length > 8
-  ) {
-    return { ok: false, error: `${path}.emoji: wymagane emoji` };
-  }
   if (!numberIn(v.tempMin, ...TEMP)) {
     return { ok: false, error: `${path}.tempMin: liczba w zakresie -60..60` };
   }
@@ -113,8 +99,6 @@ function validateDay(v: unknown, path: string): Result<DayForecast> {
     ok: true,
     value: {
       date: v.date,
-      summary: v.summary,
-      emoji: v.emoji,
       tempMin: v.tempMin,
       tempMax: v.tempMax,
       precipitationChance: v.precipitationChance,

@@ -94,8 +94,6 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
   "days": [
     {
       "date": "YYYY-MM-DD",
-      "summary": "1 zdanie — najbardziej prawdopodobny scenariusz dnia",
-      "emoji": "⛅",
       "tempMin": 9,
       "tempMax": 15,
       "precipitationChance": 70,
@@ -116,13 +114,13 @@ curl -s -X POST https://pogodai.keewinek.deno.net/api/forecast \
 
 ## Wymagania techniczne
 
-- `days`: **14 dni**, `[0]` = dziś.
+- `days`: **14 dni**, `[0]` = dziś — **tylko liczby i godzinówka**, bez tekstów
+  werdyktowych.
 - `hours`: dziś i jutro co 1 h (24 wpisy); dni 3–14 co 3 h (8 wpisów).
-- Pola dzienne `tempMin`, `tempMax`, `precipitationChance`, `windKmh` i
-  `summary` bierz z Open-Meteo **daily** (nie zeruj — muszą być spójne z
-  godzinówką).
-- `summary`: jedno zdanie po polsku o scenariuszu dnia (nie szablon typu
-  „0–0°”).
+- Pola dzienne `tempMin`, `tempMax`, `precipitationChance`, `windKmh` bierz z
+  Open-Meteo **daily** (nie zeruj — muszą być spójne z godzinówką).
+- **Nie** dodawaj `summary` ani `emoji` na poziomie dnia — ikona dnia liczy się
+  w aplikacji z godzinówki.
 - Godzinówkę zbuduj z Open-Meteo hourly (endpoint poniżej): weź
   `temperature_2m`, `precipitation_probability`, `wind_speed_10m`,
   `weather_code`; zaokrąglij do liczb całkowitych; `weather_code` → emoji wg

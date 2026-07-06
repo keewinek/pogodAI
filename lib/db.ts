@@ -16,8 +16,6 @@ export interface HourForecast {
 
 export interface DayForecast {
   date: string;
-  summary: string;
-  emoji: string;
   tempMin: number;
   tempMax: number;
   precipitationChance: number;

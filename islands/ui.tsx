@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { DayForecast, Location } from "../lib/db.ts";
-import {
-  dayPrecip,
-  daySummary,
-  dayTemps,
-  dayWind,
-  displayEmoji,
-  warsawHour,
-} from "../lib/display.ts";
+import { dayEmoji, dayPrecip, dayTemps, dayWind } from "../lib/display.ts";
 import { HourlyStrip } from "../components/forecast.tsx";
 
 const STORAGE_KEY = "pogodai_location";
@@ -169,7 +162,6 @@ export function DailyAccordion(
   }: { days: DayForecast[]; labels: string[]; todayDate: string },
 ) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const currentHour = warsawHour();
   const { globalMin, globalMax } = useMemo(() => {
     const ranges = days.map((d) => dayTemps(d));
     return {
@@ -186,9 +178,7 @@ export function DailyAccordion(
         const precip = dayPrecip(day);
         const wind = dayWind(day);
         const bar = tempBarStyle(tempMin, tempMax, globalMin, globalMax);
-        const rowEmoji = day.date === todayDate
-          ? displayEmoji(day.emoji, currentHour)
-          : day.emoji;
+        const rowEmoji = dayEmoji(day);
         return (
           <div key={day.date}>
             <button
@@ -234,9 +224,6 @@ export function DailyAccordion(
             </button>
             {open && (
               <div class="px-4 pb-4 pt-2 border-t border-white/[0.08]">
-                <p class="text-[15px] muted-strong leading-relaxed mb-4">
-                  {daySummary(day)}
-                </p>
                 <HourlyStrip hours={day.hours} embedded />
                 <p class="mt-3 text-[13px] muted tabular-nums">
                   Wiatr do {Math.round(wind)} km/h

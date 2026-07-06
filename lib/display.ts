@@ -208,23 +208,40 @@ export function dayPrecip(day: DayForecast): number {
   return day.precipitationChance > 0 ? day.precipitationChance : fromHours;
 }
 
-/** Podsumowanie dnia — fallback gdy automation wysłało placeholdery z zerami. */
-export function daySummary(day: DayForecast): string {
-  const placeholder = /0[–-]0°/.test(day.summary);
-  if (!placeholder && !(day.tempMin === 0 && day.tempMax === 0)) {
-    return day.summary;
-  }
-  const { min, max } = dayTemps(day);
+export function hourFromTime(time: string): number {
+  return parseInt(time.slice(11, 13), 10);
+}
+
+function emojiSeverity(emoji: string): number {
+  if (emoji.includes("⛈") || emoji.includes("🌩")) return 9;
+  if (emoji.includes("❄") || emoji.includes("🌨")) return 8;
+  if (emoji.includes("🌧") || emoji.includes("☔")) return 7;
+  if (emoji.includes("🌦")) return 6;
+  if (emoji.includes("🌫")) return 5;
+  if (emoji.includes("☁")) return 4;
+  if (emoji.includes("⛅")) return 3;
+  if (emoji.includes("🌤")) return 2;
+  if (emoji.includes("☀")) return 1;
+  return 0;
+}
+
+/** Ikona dnia z godzinówki — południe lub najgorsza pogoda przy wysokich opadach. */
+export function dayEmoji(day: DayForecast): string {
+  if (day.hours.length === 0) return "⛅";
+
   const precip = dayPrecip(day);
-  const wind = dayWind(day);
-  const label = conditionLabel(day.emoji);
-  let text = `${label} — ${Math.round(min)}° do ${Math.round(max)}°`;
-  if (precip >= 30) text += `, opady do ${Math.round(precip)}%`;
-  else if (precip > 0) {
-    text += `, niewielka szansa opadów (${Math.round(precip)}%)`;
+  if (precip >= 40) {
+    return day.hours.reduce((worst, h) =>
+      emojiSeverity(h.emoji) > emojiSeverity(worst.emoji) ? h : worst
+    ).emoji;
   }
-  if (wind >= 25) text += `, wiatr do ${Math.round(wind)} km/h`;
-  return `${text}.`;
+
+  const daytime = day.hours.filter((h) => {
+    const hr = hourFromTime(h.time);
+    return hr >= 10 && hr <= 15;
+  });
+  const pool = daytime.length > 0 ? daytime : day.hours;
+  return pool[Math.floor(pool.length / 2)].emoji;
 }
 
 export function hourLabel(time: string): string {
