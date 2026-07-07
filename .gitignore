@@ -11,3 +11,7 @@ _fresh/
 node_modules/
 vendor/
 
+# PogodAI automation runtime artifacts
+forecast.json
+tmp/
+
