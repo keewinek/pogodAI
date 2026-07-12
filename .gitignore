@@ -11,3 +11,6 @@ _fresh/
 node_modules/
 vendor/
 
+# Generated forecast payloads (posted to API at runtime)
+automation/forecasts/
+
